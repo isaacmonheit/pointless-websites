@@ -37,7 +37,9 @@
 
     <script>
         function playSound() {
-            document.getElementById('pianoKey').play();
+            var audioElement = document.getElementById('pianoKey');
+            audioElement.currentTime = 0;  // Reset the audio to the beginning
+            audioElement.play();
         }
     </script>
 </body>
