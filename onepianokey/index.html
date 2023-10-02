@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piano Key</title>
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        img {
+            max-width: 90%;
+            max-height: 90%;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-left: 40%;
+        }
+
+        img:active {
+            opacity: 0.6;
+        }
+
+    </style>
+</head>
+<body>
+    <img src="PianoKey.png" onclick="playSound()" alt="Piano Key">
+
+    <audio id="pianoKey" src="key08.mp3"></audio>
+
+    <script>
+        function playSound() {
+            document.getElementById('pianoKey').play();
+        }
+    </script>
+</body>
+</html>
