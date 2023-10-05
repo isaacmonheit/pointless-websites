@@ -1,0 +1,74 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+#animation-container {
+    background-color: black;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    /* transition: all 2.5s;  */
+}
+
+:fullscreen {
+    width: 100vw;
+    height: 100vh;
+}
+
+#fullscreenToggle {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#fullscreenToggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+#speedSlider {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    width: 150px;
+    z-index: 9998;  /* slightly below the fullscreen button in case they overlap */
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+#speedSlider:hover {
+    opacity: 1;
+}
+
+.speed-icon {
+    position: absolute;
+    bottom: 22px; /* Adjust the vertical position */
+    font-size: 1.5em; /* Adjust the font size as needed */
+    pointer-events: none; /* Prevent the icons from interfering with slider interaction */
+}
+
+#snailIcon {
+    left: 10px; /* Adjust the horizontal position for the snail icon */
+}
+
+#cheetahIcon {
+    left: 140px; /* Adjust the horizontal position for the cheetah icon */
+}
+
+#iconContainer {
+    position: absolute;
+    /* bottom: 10px;     */
+    display: block; /* Initially, the icons are visible */
+    pointer-events: none;
+}
+
