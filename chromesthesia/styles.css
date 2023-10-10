@@ -1,0 +1,31 @@
+/* @import 'cropperjs/dist/cropper.css'; */
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+#imageContainer {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    max-width: 100%;  /* Limit the width of the container */
+    overflow: hidden; /* Hide any overflowing parts of the image */
+}
+
+#imageContainer img {
+    max-width: 100%;  /* Ensure the image scales down if it's too wide */
+    display: block;   /* Remove any unwanted white space below the image */
+    margin: 0 auto;   /* Center the image horizontally */
+}
+
+#colorDisplay {
+    position: fixed;
+    top: 10%;
+    right: 10%;
+    transform: translateY(-50%);
+}
