@@ -1,6 +1,6 @@
-import Essentia from './node_modules/essentia.js/dist/essentia.js-core.es.js';
-import { EssentiaWASM } from './node_modules/essentia.js/dist/essentia-wasm.es.js';
-// Web Audio API setup
+// import Essentia from './node_modules/essentia.js/dist/essentia.js-core.es.js';
+// import { EssentiaWASM } from './node_modules/essentia.js/dist/essentia-wasm.es.js';
+// // Web Audio API setup
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let hihatBuffer, snareBuffer, kickBuffer;
 
@@ -182,51 +182,51 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-const essentia = new Essentia(EssentiaWASM);
+// const essentia = new Essentia(EssentiaWASM);
 
-// Access the microphone
-navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-        const audioContext = new AudioContext();
-        const source = audioContext.createMediaStreamSource(stream);
+// // Access the microphone
+// navigator.mediaDevices.getUserMedia({ audio: true })
+//     .then(stream => {
+//         const audioContext = new AudioContext();
+//         const source = audioContext.createMediaStreamSource(stream);
 
-        // Create a ScriptProcessorNode to process the audio
-        const processor = audioContext.createScriptProcessor(8192, 1, 1); // Increase from 4096 to 8192
+//         // Create a ScriptProcessorNode to process the audio
+//         const processor = audioContext.createScriptProcessor(8192, 1, 1); // Increase from 4096 to 8192
 
-        source.connect(processor);
-        processor.connect(audioContext.destination);
-        // console.log(processor);
+//         source.connect(processor);
+//         processor.connect(audioContext.destination);
+//         // console.log(processor);
 
-        processor.onaudioprocess = function(event) {
-            const inputBuffer = event.inputBuffer.getChannelData(0);
-            // const inputData = new Float32Array(inputBuffer);
+//         processor.onaudioprocess = function(event) {
+//             const inputBuffer = event.inputBuffer.getChannelData(0);
+//             // const inputData = new Float32Array(inputBuffer);
 
-            // Use Essentia.js to detect BPM or other features
-            // console.log(inputBuffer);
-            // console.log(inputBuffer.length);
+//             // Use Essentia.js to detect BPM or other features
+//             // console.log(inputBuffer);
+//             // console.log(inputBuffer.length);
 
-            // let inputDataArray = Array.from(inputBuffer);
-            const inputVector = essentia.arrayToVector(inputBuffer);
-            // console.log(inputVector);
+//             // let inputDataArray = Array.from(inputBuffer);
+//             const inputVector = essentia.arrayToVector(inputBuffer);
+//             // console.log(inputVector);
 
-            const rhythm = essentia.RhythmExtractor2013(inputVector);
-            console.log(rhythm)
-            console.log(essentia.vectorToArray(rhythm.ticks));
-            const detectedBPM = rhythm.bpm;
-            console.log(detectedBPM)
+//             const rhythm = essentia.RhythmExtractor2013(inputVector);
+//             console.log(rhythm)
+//             console.log(essentia.vectorToArray(rhythm.ticks));
+//             const detectedBPM = rhythm.bpm;
+//             console.log(detectedBPM)
 
-            // Do something with the detected BPM, like adjusting your sequencer
-            adjustSequencerBPM(detectedBPM);
-        };
-    })
-    .catch(error => {
-        console.error('Error accessing microphone:', error);
-    });
+//             // Do something with the detected BPM, like adjusting your sequencer
+//             adjustSequencerBPM(detectedBPM);
+//         };
+//     })
+//     .catch(error => {
+//         console.error('Error accessing microphone:', error);
+//     });
 
-function adjustSequencerBPM(bpm) {
-    if (bpm >= 0 && bpm <= 1000) {
-        clearInterval(sequencerInterval);
-        sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);  // Divided by 4 for 16th notes
-    }
-}
+// function adjustSequencerBPM(bpm) {
+//     if (bpm >= 0 && bpm <= 1000) {
+//         clearInterval(sequencerInterval);
+//         sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);  // Divided by 4 for 16th notes
+//     }
+// }
     
