@@ -1,0 +1,151 @@
+body {
+    background-color: white;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 40px;
+    margin: 20px;
+}
+
+.circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: grey;
+    cursor: pointer;
+    position: relative;  /* Added to position the pseudo-element relative to the circle */
+}
+
+.circle::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    z-index: -1;
+}
+
+.hihat.active {
+    background-color: red;
+}
+
+.snare.active {
+    background-color: green;
+}
+
+.kick.active {
+    background-color: blue;
+}
+
+.current {
+    box-shadow: 0 0 10px #d0d0d0;
+    background-color: #454545;  /* Brighter background */
+}
+
+#volumeControls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;  /* Add some spacing between the sliders and the grid */
+}
+
+.volumeSlider {
+    width: 80%;  /* Adjust this value to match the sequencer grid width */
+    margin-bottom: 10px;  /* Spacing between sliders */
+}
+
+#controls {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+}
+/* DONT NEED THIS BELOW */
+#extendSequencer {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.extend-button {
+    position: absolute;
+    right: 10px;  /* Adjust as needed */
+    top: 50%;  /* Vertically center */
+    transform: translateY(-50%);  /* True vertical centering */
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.extend-button.extended {
+    transform: translateY(-50%) rotate(180deg);
+}
+/* DONT NEED THIS ABOVE */
+
+/* For HiHat Slider */
+.hihatSlider::-webkit-slider-runnable-track {
+    background-color: red;  /* Light Gold Color */
+}
+
+/* For Snare Slider */
+.snareSlider::-webkit-slider-runnable-track {
+    background-color: green;  /* Light Orange-Red Color */
+}
+
+/* For Kick Slider */
+.kickSlider::-webkit-slider-runnable-track {
+    background-color: blue;  /* Light Forest Green Color */
+}
+
+#mainContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#sequencerGrid, #soundBin, #playSection {
+    width: 100%; /* or adjust as needed */
+    margin-bottom: 20px;
+}
+
+#soundBin {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.soundBox {
+    padding: 10px;
+    border: 2px solid gray;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    position: relative; /* Added this to position the 'x' relative to the soundBox */
+}
+
+#playSection {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border: 2px dashed gray;
+    min-height: 50px;
+    /* min-width: 50px; */
+}
+
+/* Adjusted styles for the 'x' within each soundBox */
+.soundBox > span {
+    position: absolute;
+    top: -5px;
+    right: 1px;
+    cursor: pointer;
+}

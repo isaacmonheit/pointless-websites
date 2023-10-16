@@ -1,62 +1,15 @@
+<!-- NOTES:
+
+Add synth just like solo set ideas in logic, where you can hot queue between
+different chords using numbers or something to accompany the beat. -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>16 Beat Sequencer</title>
-    <style>
-        body {
-            background-color: white;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(16, 1fr);
-            gap: 40px;
-            margin: 20px;
-        }
-
-        .circle {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background-color: grey;
-            cursor: pointer;
-            position: relative;  /* Added to position the pseudo-element relative to the circle */
-        }
-
-        .circle::before {
-            content: "";
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            z-index: -1;
-        }
-
-        .hihat.active {
-            background-color: red;
-        }
-
-        .snare.active {
-            background-color: green;
-        }
-
-        .kick.active {
-            background-color: blue;
-        }
-
-        .current {
-            box-shadow: 0 0 10px #d0d0d0;
-            background-color: #454545;  /* Brighter background */
-        }
-
-    </style>
+    <title>Beat Sequencer</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- <audio id="hihatSound" src="/sequencer/sounds/hat1.wav" preload="auto"></audio>
@@ -66,10 +19,34 @@
     <div id="bpmPopup" style="position: absolute; top: 40px; left: 10px; display: none;">
         BPM: <input type="number" id="bpmInput" min="30" max="300" value="120">
     </div>
+    <div id="volumeControls">
+        <input type="range" min="0" max="1" step="0.01" value="1" id="hihatVolume" class="volumeSlider hihatSlider">
+        <input type="range" min="0" max="1" step="0.01" value="1" id="snareVolume" class="volumeSlider snareSlider">
+        <input type="range" min="0" max="1" step="0.01" value="1" id="kickVolume" class="volumeSlider kickSlider">        
+    </div>
+    
     <div id="tip" style="position: absolute; top: 70px; left: 10px; display: none;">tip: try clicking and dragging!</div>
 
+    <!-- <div id="controls">
+        <button id="extendSequencer" class="extend-button">⮞</button>
+    </div> -->
+    <div id="mainContainer">
 
-    <div class="grid" id="sequencerGrid"></div>
+        <div class="grid" id="sequencerGrid"></div>
+
+        <div id="playSection">
+            <!-- Dragged sound boxes will appear here -->
+        </div>
+        
+        <div id="soundBin">
+            <div class="soundBox" data-sound="synth1">Synth 1</div>
+            <div class="soundBox" data-sound="synth2">Synth 2</div>
+            <!-- ... add more sound boxes as needed ... -->
+        </div>
+        
+     
+    </div>
+
     <script src="/sequencer/script.js" type="module"></script>
 </body>
 </html>

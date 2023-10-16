@@ -4,6 +4,29 @@
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let hihatBuffer, snareBuffer, kickBuffer;
 
+const hihatGain = audioContext.createGain();
+const snareGain = audioContext.createGain();
+const kickGain = audioContext.createGain();
+
+hihatGain.gain.value = 1.0; 
+snareGain.gain.value = 1.0;  
+kickGain.gain.value = 1.0;   
+
+let totalBeats = 16;
+let currentSoundIndex = 0;
+
+
+document.getElementById('hihatVolume').addEventListener('input', (event) => {
+    hihatGain.gain.value = event.target.value;
+});
+document.getElementById('snareVolume').addEventListener('input', (event) => {
+    snareGain.gain.value = event.target.value;
+});
+document.getElementById('kickVolume').addEventListener('input', (event) => {
+    kickGain.gain.value = event.target.value;
+});
+
+
 function loadAudioFile(url, callback) {
     fetch(url)
         .then(response => response.arrayBuffer())
@@ -25,23 +48,44 @@ loadAudioFile('/sequencer/sounds/kick1.wav', buffer => {
     kickBuffer = buffer;
 });
 
-function playSound(buffer) {
+let synth1Buffer, synth2Buffer;
+
+loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {
+    synth1Buffer = buffer;
+});
+
+loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {
+    synth2Buffer = buffer;
+});
+
+let currentlyPlayingSynth = null;
+
+function playSound(buffer, gainNode = null) {
+    if (!buffer) {
+        console.error("Buffer is not defined or invalid.");
+        return;
+    }
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
-    source.connect(audioContext.destination);
+    if (gainNode) {
+        source.connect(gainNode).connect(audioContext.destination);
+    } else {
+        source.connect(audioContext.destination);
+    }
     source.start(0);
+    return source; // return the AudioBufferSourceNode
 }
 
 function playInstrument(instrument) {
     switch (instrument) {
         case 'hihat':
-            playSound(hihatBuffer);
+            playSound(hihatBuffer, hihatGain);
             break;
         case 'snare':
-            playSound(snareBuffer);
+            playSound(snareBuffer, snareGain);
             break;
         case 'kick':
-            playSound(kickBuffer);
+            playSound(kickBuffer, kickGain);
             break;
     }
 }
@@ -51,7 +95,7 @@ const grid = document.getElementById('sequencerGrid');
 const instruments = ['hihat', 'snare', 'kick'];
 
 instruments.forEach(instrument => {
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < totalBeats; i++) {
         const circle = document.createElement('div');
         circle.classList.add('circle', instrument);
         grid.appendChild(circle);
@@ -74,6 +118,10 @@ const bpmInput = document.getElementById('bpmInput');
 const tip = document.getElementById('tip');
 let sequencerInterval = null;
 
+//start open for now
+bpmPopup.style.display = 'block';
+tip.style.display = 'block';
+
 menuIcon.addEventListener('click', () => {
     bpmPopup.style.display = bpmPopup.style.display === 'none' ? 'block' : 'none';
     tip.style.display = tip.style.display === 'none' ? 'block' : 'none';
@@ -87,47 +135,35 @@ bpmInput.addEventListener('change', () => {
     }
 });
 
-// Run Sequencer (this is the same code as before, but now encapsulated in a function)
-function runSequencer() {
-    // Remove the current indicator from all circles
-    circles.forEach(circle => circle.classList.remove('current'));
-
-    // Get circles for the current beat
-    const currentBeatCircles = document.querySelectorAll(`.circle:nth-child(16n+${currentBeat+1})`);
-    currentBeatCircles.forEach(circle => {
-        circle.classList.add('current');
-        if (circle.classList.contains('active')) {
-            playInstrument(circle.classList[1]);  // The second class is the instrument name
-        }
-    });
-
-    // Move to the next beat
-    currentBeat = (currentBeat + 1) % 16;
-}
-
 sequencerInterval = setInterval(runSequencer, (60 / 120) * 1000 / 4);
 
 // Click and Drag Functionality
 let isDragging = false;
 let hasMoved = false;
 let initialPos = null;
+let dragStartedOnCircle = false;
 
 document.addEventListener('mousedown', (e) => {
+    const circle = e.target.closest('.circle');
+    dragStartedOnCircle = !!circle;  // This will be true if a circle was clicked, false otherwise
+
+    if (!circle) return;
+
     isDragging = true;
     hasMoved = false;
     initialPos = { x: e.clientX, y: e.clientY }; // Store the initial mouse position
+    
     // Reset the toggle state for all circles
     circles.forEach(circle => circle.dataset.toggledDuringDrag = "false");
     
-    const circle = e.target.closest('.circle');
-    if (circle) {
-        circle.classList.toggle('active');
-        circle.dataset.toggledDuringDrag = "true";
-    }
+    circle.classList.toggle('active');
+    circle.dataset.toggledDuringDrag = "true";
 });
+
 
 document.addEventListener('mouseup', (e) => {
     isDragging = false;
+    dragStartedOnCircle = false;  // Reset the flag here
 
     // If the mouse didn't move significantly, treat it as a click
     if (!hasMoved) {
@@ -140,7 +176,7 @@ document.addEventListener('mouseup', (e) => {
 });
 
 document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
+    if (!isDragging || !dragStartedOnCircle) return;  // Added the check here
 
     const distance = Math.sqrt(Math.pow(initialPos.x - e.clientX, 2) + Math.pow(initialPos.y - e.clientY, 2));
     if (distance > 10) {  // Set a threshold distance, adjust as needed
@@ -182,51 +218,161 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-// const essentia = new Essentia(EssentiaWASM);
+////////////////////////// RUNNING SEQUENCER /////////////////////////////////
 
-// // Access the microphone
-// navigator.mediaDevices.getUserMedia({ audio: true })
-//     .then(stream => {
-//         const audioContext = new AudioContext();
-//         const source = audioContext.createMediaStreamSource(stream);
+let hasPlaySectionChanged = false;
 
-//         // Create a ScriptProcessorNode to process the audio
-//         const processor = audioContext.createScriptProcessor(8192, 1, 1); // Increase from 4096 to 8192
+function runSequencer() {
+    // Remove the current indicator from all circles
+    circles.forEach(circle => circle.classList.remove('current'));
 
-//         source.connect(processor);
-//         processor.connect(audioContext.destination);
-//         // console.log(processor);
+    // Get circles for the current beat considering totalBeats
+    const currentBeatCircles = document.querySelectorAll(`.circle:nth-child(${totalBeats}n+${currentBeat+1})`);
 
-//         processor.onaudioprocess = function(event) {
-//             const inputBuffer = event.inputBuffer.getChannelData(0);
-//             // const inputData = new Float32Array(inputBuffer);
+    currentBeatCircles.forEach(circle => {
+        circle.classList.add('current');
+        if (circle.classList.contains('active')) {
+            playInstrument(circle.classList[1]);  // The second class is the instrument name
+        }
+    });
 
-//             // Use Essentia.js to detect BPM or other features
-//             // console.log(inputBuffer);
-//             // console.log(inputBuffer.length);
+    // Move to the next beat
+    currentBeat = (currentBeat + 1) % totalBeats;
 
-//             // let inputDataArray = Array.from(inputBuffer);
-//             const inputVector = essentia.arrayToVector(inputBuffer);
-//             // console.log(inputVector);
+    if (currentBeat === 1 || hasPlaySectionChanged) {
+        const playSectionBoxes = playSection.querySelectorAll('.soundBox');
+        if (playSectionBoxes.length) {
+            const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
+            if (currentSound === 'synth1' && synth1Buffer) {
+                // Stop the previously playing synth sound
+                if (currentlyPlayingSynth) {
+                    currentlyPlayingSynth.stop();
+                }
+                currentlyPlayingSynth = playSound(synth1Buffer);
+            } else if (currentSound === 'synth2' && synth2Buffer) {
+                // Stop the previously playing synth sound
+                if (currentlyPlayingSynth) {
+                    currentlyPlayingSynth.stop();
+                }
+                currentlyPlayingSynth = playSound(synth2Buffer);
+            }
 
-//             const rhythm = essentia.RhythmExtractor2013(inputVector);
-//             console.log(rhythm)
-//             console.log(essentia.vectorToArray(rhythm.ticks));
-//             const detectedBPM = rhythm.bpm;
-//             console.log(detectedBPM)
+            currentSoundIndex = (currentSoundIndex + 1) % playSectionBoxes.length;
+        }
 
-//             // Do something with the detected BPM, like adjusting your sequencer
-//             adjustSequencerBPM(detectedBPM);
-//         };
-//     })
-//     .catch(error => {
-//         console.error('Error accessing microphone:', error);
-//     });
+        hasPlaySectionChanged = false; // Reset the flag
+    }
+}
 
-// function adjustSequencerBPM(bpm) {
-//     if (bpm >= 0 && bpm <= 1000) {
-//         clearInterval(sequencerInterval);
-//         sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);  // Divided by 4 for 16th notes
-//     }
-// }
-    
+
+
+
+
+/////////////////////////// DRAG AND DROP MECHANIC /////////////////////////////
+// Make each sound box draggable
+document.querySelectorAll('.soundBox').forEach(box => {
+    box.draggable = true;
+
+    box.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', box.dataset.sound);
+        e.dataTransfer.setData('source', 'soundBox'); // Indicate the source of the drag
+    });
+});
+
+// Allow the play section to accept dragged items
+const playSection = document.getElementById('playSection');
+const soundBin = document.getElementById('soundBin');
+
+document.querySelectorAll('#playSection .soundBox').forEach(box => {
+    box.draggable = true;
+    box.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', box.dataset.sound);
+        e.dataTransfer.setData('source', 'playSection'); // Indicate the source of the drag
+    });
+});
+
+[playSection, soundBin].forEach(container => {
+    container.addEventListener('dragover', e => {
+        e.preventDefault();  // Allow dropping
+    });
+});
+
+playSection.addEventListener('drop', e => {
+    e.preventDefault();
+
+    const soundData = e.dataTransfer.getData('text/plain');
+    const dragSource = e.dataTransfer.getData('source');
+
+    if (dragSource === 'playSection') {
+        // Dragging within the playSection
+        const draggedBox = document.querySelector(`#playSection [data-sound="${soundData}"]`);
+        rearrangeBoxes(draggedBox, e.clientX);
+    } else {
+        // Dragging from the soundBin
+        const soundBoxToClone = document.querySelector(`[data-sound="${soundData}"]`);
+        if (!soundBoxToClone) {
+            console.error(`No soundBox found for sound: ${soundData}`);
+            return; // exit the function if no soundBox is found
+        }
+
+        const newBox = soundBoxToClone.cloneNode(true);
+        const closeButton = document.createElement('span');
+        closeButton.innerText = 'x';
+
+        closeButton.addEventListener('click', function() {
+            if (soundData.startsWith('synth')) {  // Check if it's a synth sound
+                const synthBoxes = playSection.querySelectorAll('.soundBox[data-sound^="synth"]');
+                if (synthBoxes.length === 1) {  // Check if this is the last synth box
+                    if (currentlyPlayingSynth) {
+                        currentlyPlayingSynth.stop();
+                    }
+                }
+            }
+            playSection.removeChild(newBox);
+            hasPlaySectionChanged = true;
+            currentSoundIndex = 0;
+        });
+        newBox.appendChild(closeButton);
+
+        rearrangeBoxes(newBox, e.clientX, true);
+    }
+    // hasPlaySectionChanged = true;
+});
+
+function rearrangeBoxes(box, clientX, isClone = false) {
+    let closestBox = null;
+    let closestDistance = Infinity;
+    let insertAfter = false;
+
+    const playSectionBoxes = playSection.querySelectorAll('.soundBox');
+    playSectionBoxes.forEach(existingBox => {
+        const boxRect = existingBox.getBoundingClientRect();
+        const boxCenterX = boxRect.left + (boxRect.width / 2);
+        const distance = Math.abs(boxCenterX - clientX);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestBox = existingBox;
+            insertAfter = clientX > boxCenterX;
+        }
+    });
+
+    if (closestBox) {
+        if (insertAfter) {
+            closestBox.after(box);
+        } else {
+            closestBox.before(box);
+        }
+    } else {
+        playSection.appendChild(box);
+    }
+
+    // If the box is a clone, we need to make it draggable for future drag operations within playSection
+    if (isClone) {
+        box.draggable = true;
+        box.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text/plain', box.dataset.sound);
+            e.dataTransfer.setData('source', 'playSection'); // Indicate the source of the drag
+        });
+    }
+}
