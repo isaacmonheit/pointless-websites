@@ -15,6 +15,67 @@ kickGain.gain.value = 1.0;
 let totalBeats = 16;
 let currentSoundIndex = 0;
 
+let isDragging = false;
+let hasMoved = false;
+let initialPos = null;
+let dragStartedOnCircle = false;
+
+//////////////////////// CHANGING NUMBER OF BEATS IN THE SEQUENCER ///////////////////////////
+
+numBeatsSelect.addEventListener('change', (event) => {
+    // 1. Store the active states of the current beats
+    const activeStates = [];
+    const currentCircles = document.querySelectorAll('.circle');
+    currentCircles.forEach(circle => {
+        activeStates.push(circle.classList.contains('active'));
+    });
+
+    clearInterval(sequencerInterval);
+    totalBeats = parseInt(event.target.value, 10);
+    clearSequencerGrid();
+    generateBeats();
+
+    // 2. Reapply the active states to the newly generated beats
+    // const newCircles = document.querySelectorAll('.circle');
+    // for (let i = 0; i < activeStates.length; i++) {
+    //     if (activeStates[i]) {
+    //         newCircles[i].classList.add('active');
+    //     }
+    // }
+
+    // 3. Restart the sequencer loop
+    
+    sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);
+});
+
+function generateBeats() {
+    instruments.forEach(instrument => {
+        for (let i = 0; i < totalBeats; i++) {
+            const circle = document.createElement('div');
+            // Attach click event listener to the new circle
+            circle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+
+            circle.classList.add('circle', instrument);
+            
+            grid.appendChild(circle);
+        }
+    });
+
+    // Update the circles NodeList
+    circles = document.querySelectorAll('.circle');
+    
+    isDragging = false;
+    dragStartedOnCircle = false;
+}
+
+
+function clearSequencerGrid() {
+    while (grid.firstChild) {
+        grid.removeChild(grid.firstChild);
+    }
+}
 
 document.getElementById('hihatVolume').addEventListener('input', (event) => {
     hihatGain.gain.value = event.target.value;
@@ -49,7 +110,6 @@ loadAudioFile('/sequencer/sounds/kick1.wav', buffer => {
 });
 
 let synth1Buffer, synth2Buffer;
-
 loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {
     synth1Buffer = buffer;
 });
@@ -93,21 +153,9 @@ function playInstrument(instrument) {
 // Your sequencer grid setup
 const grid = document.getElementById('sequencerGrid');
 const instruments = ['hihat', 'snare', 'kick'];
+let circles = document.querySelectorAll('.circle');
 
-instruments.forEach(instrument => {
-    for (let i = 0; i < totalBeats; i++) {
-        const circle = document.createElement('div');
-        circle.classList.add('circle', instrument);
-        grid.appendChild(circle);
-    }
-});
-
-const circles = document.querySelectorAll('.circle');
-circles.forEach(circle => {
-    circle.addEventListener('click', function() {
-        this.classList.toggle('active');
-    });
-});
+generateBeats();
 
 let currentBeat = 0;
 
@@ -116,6 +164,7 @@ const menuIcon = document.getElementById('menuIcon');
 const bpmPopup = document.getElementById('bpmPopup');
 const bpmInput = document.getElementById('bpmInput');
 const tip = document.getElementById('tip');
+let bpm = 120
 let sequencerInterval = null;
 
 //start open for now
@@ -128,20 +177,34 @@ menuIcon.addEventListener('click', () => {
 });
 
 bpmInput.addEventListener('change', () => {
-    const bpm = parseFloat(bpmInput.value);
+    bpm = parseFloat(bpmInput.value);
     if (bpm >= 0 && bpm <= 1000) {
         clearInterval(sequencerInterval);
         sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);  // Divided by 4 for 16th notes
     }
 });
 
-sequencerInterval = setInterval(runSequencer, (60 / 120) * 1000 / 4);
+sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);
 
-// Click and Drag Functionality
-let isDragging = false;
-let hasMoved = false;
-let initialPos = null;
-let dragStartedOnCircle = false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////// CLICKING AND DRAGGING ON SEQEUNCER /////////////////////////////
+
 
 document.addEventListener('mousedown', (e) => {
     const circle = e.target.closest('.circle');
@@ -218,13 +281,33 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ////////////////////////// RUNNING SEQUENCER /////////////////////////////////
 
 let hasPlaySectionChanged = false;
+let beatChange = 16
+const beatChangeSelect = document.getElementById('beatChangeSelect');
+beatChangeSelect.addEventListener('change', (event) => {
+    beatChange = parseInt(event.target.value, 10);
+});
+
 
 function runSequencer() {
-    // Remove the current indicator from all circles
-    circles.forEach(circle => circle.classList.remove('current'));
+    const allCircles = document.querySelectorAll('.circle');
+    allCircles.forEach(circle => circle.classList.remove('current'));
 
     // Get circles for the current beat considering totalBeats
     const currentBeatCircles = document.querySelectorAll(`.circle:nth-child(${totalBeats}n+${currentBeat+1})`);
@@ -239,7 +322,7 @@ function runSequencer() {
     // Move to the next beat
     currentBeat = (currentBeat + 1) % totalBeats;
 
-    if (currentBeat === 1 || hasPlaySectionChanged) {
+    if (currentBeat % (Math.min(beatChange, totalBeats)) === 1 || beatChange === 1 || hasPlaySectionChanged) {
         const playSectionBoxes = playSection.querySelectorAll('.soundBox');
         if (playSectionBoxes.length) {
             const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
@@ -268,7 +351,17 @@ function runSequencer() {
 
 
 
+
+
+
+
+
+
+
+
+
 /////////////////////////// DRAG AND DROP MECHANIC /////////////////////////////
+
 // Make each sound box draggable
 document.querySelectorAll('.soundBox').forEach(box => {
     box.draggable = true;

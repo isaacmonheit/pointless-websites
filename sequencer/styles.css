@@ -53,12 +53,14 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 20px;  /* Add some spacing between the sliders and the grid */
+    margin-bottom: 155px;  /* Add some spacing between the sliders and the grid */
+    margin-right: 10px;
 }
 
 .volumeSlider {
     width: 80%;  /* Adjust this value to match the sequencer grid width */
     margin-bottom: 10px;  /* Spacing between sliders */
+    margin: 21%;
 }
 
 #controls {
@@ -66,31 +68,6 @@ body {
     align-items: center;
     margin-right: 20px;
 }
-/* DONT NEED THIS BELOW */
-#extendSequencer {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    margin-right: 10px;
-}
-
-.extend-button {
-    position: absolute;
-    right: 10px;  /* Adjust as needed */
-    top: 50%;  /* Vertically center */
-    transform: translateY(-50%);  /* True vertical centering */
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: transform 0.3s;
-}
-
-.extend-button.extended {
-    transform: translateY(-50%) rotate(180deg);
-}
-/* DONT NEED THIS ABOVE */
 
 /* For HiHat Slider */
 .hihatSlider::-webkit-slider-runnable-track {
@@ -148,4 +125,16 @@ body {
     top: -5px;
     right: 1px;
     cursor: pointer;
+}
+
+#beatChangeContainer {
+    position: absolute;
+    left: 10px; /* adjust as necessary */
+    top: 100px; /* this positions the dropdown just below the volume sliders */
+}
+
+#numBeatsContainer {
+    position: absolute;
+    left: 10px; /* adjust as necessary */
+    top: 130px; /* this positions the dropdown just below the volume sliders */
 }

@@ -20,10 +20,32 @@ different chords using numbers or something to accompany the beat. -->
         BPM: <input type="number" id="bpmInput" min="30" max="300" value="120">
     </div>
     <div id="volumeControls">
-        <input type="range" min="0" max="1" step="0.01" value="1" id="hihatVolume" class="volumeSlider hihatSlider">
-        <input type="range" min="0" max="1" step="0.01" value="1" id="snareVolume" class="volumeSlider snareSlider">
-        <input type="range" min="0" max="1" step="0.01" value="1" id="kickVolume" class="volumeSlider kickSlider">        
+        <input type="range" min="0" max="1" step="0.01" value="0.52" id="hihatVolume" class="volumeSlider hihatSlider">
+        <input type="range" min="0" max="1" step="0.01" value="0.52" id="snareVolume" class="volumeSlider snareSlider">
+        <input type="range" min="0" max="1" step="0.01" value="0.52" id="kickVolume" class="volumeSlider kickSlider">        
     </div>
+
+    <div id="beatChangeContainer">
+        <label for="beatChangeSelect">Move Sound Frequency</label>
+        <select id="beatChangeSelect">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+            <option value="16" selected>16</option>
+            <option value="32">32</option>
+        </select>
+    </div>
+
+    <div id="numBeatsContainer">
+        <label for="numBeatsSelect"># Beats</label>
+        <select id="numBeatsSelect">
+            <option value="16" selected>16</option>
+            <option value="32">32</option>
+        </select>
+    </div>
+
+   
     
     <div id="tip" style="position: absolute; top: 70px; left: 10px; display: none;">tip: try clicking and dragging!</div>
 
@@ -34,7 +56,10 @@ different chords using numbers or something to accompany the beat. -->
 
         <div class="grid" id="sequencerGrid"></div>
 
+       
+
         <div id="playSection">
+            
             <!-- Dragged sound boxes will appear here -->
         </div>
 
