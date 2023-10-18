@@ -2,13 +2,15 @@
 // import { EssentiaWASM } from './node_modules/essentia.js/dist/essentia-wasm.es.js';
 // // Web Audio API setup
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let hihatBuffer, snareBuffer, kickBuffer;
+let hihatBuffer, snareBuffer, kickBuffer, percBuffer;
 
 const hihatGain = audioContext.createGain();
+const percGain = audioContext.createGain();
 const snareGain = audioContext.createGain();
 const kickGain = audioContext.createGain();
 
 hihatGain.gain.value = 1.0; 
+percGain.gain.value = 1.0; 
 snareGain.gain.value = 1.0;  
 kickGain.gain.value = 1.0;   
 
@@ -20,10 +22,81 @@ let hasMoved = false;
 let initialPos = null;
 let dragStartedOnCircle = false;
 
+
+//////////////////////////////// CHANGING INDIVIDUAL SOUNDS /////////////////////////////////////
+
+function switchSound(instrumentType, soundFile) {
+    loadAudioFile('/sequencer/sounds/' + soundFile, buffer => {
+        switch (instrumentType) {
+            case 'hihat':
+                hihatBuffer = buffer;
+                break;
+            case 'perc':
+                percBuffer = buffer;
+                break;
+            case 'snare':
+                snareBuffer = buffer;
+                break;
+            case 'kick':
+                kickBuffer = buffer;
+                break;
+            default:
+                console.error("Unknown instrument type: ", instrumentType);
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const sounds = [
+        {name: "hat_1", file: "hat1.wav"},
+        {name: "hat_2", file: "hat2.wav"},
+        {name: "hat_moon", file: "hat_moon.wav"},
+        {name: "snare_1", file: "snare1.wav"},
+        {name: "snare_moon", file: "snare_moon.wav"},
+        {name: "kick_1", file: "kick1.wav"},
+        {name: "kick_moon", file: "kick_moon.wav"},
+        {name: "open_hat_1", file: "open_hat.wav"}
+        // ... Add other sounds as needed ...
+    ];
+
+    const soundSelectors = document.querySelectorAll(".soundSelector");
+    soundSelectors.forEach(selector => {
+        sounds.forEach(sound => {
+            const option = document.createElement('option');
+            option.value = sound.file;
+            option.innerText = sound.name;
+            selector.appendChild(option);
+        });
+    });
+
+    const initialSounds = {
+        hihat: 'hat1.wav',
+        perc: 'hat2.wav',
+        snare: 'snare1.wav',
+        kick: 'kick1.wav'
+    };
+
+    document.querySelectorAll(".instrumentControls").forEach(control => {
+        const soundSelector = control.querySelector(".soundSelector");
+        const instrumentType = control.querySelector(".volumeSlider").classList[1].replace("Slider", "");
+        soundSelector.value = initialSounds[instrumentType];
+
+        soundSelector.addEventListener('change', function() {
+            const newSoundFile = this.value;
+            switchSound(instrumentType, newSoundFile);
+        });
+    });
+});
+
+
+
+
+
+
+
 //////////////////////// CHANGING NUMBER OF BEATS IN THE SEQUENCER ///////////////////////////
 
 numBeatsSelect.addEventListener('change', (event) => {
-    // 1. Store the active states of the current beats
     const activeStates = [];
     const currentCircles = document.querySelectorAll('.circle');
     currentCircles.forEach(circle => {
@@ -34,19 +107,14 @@ numBeatsSelect.addEventListener('change', (event) => {
     totalBeats = parseInt(event.target.value, 10);
     clearSequencerGrid();
     generateBeats();
-
-    // 2. Reapply the active states to the newly generated beats
-    // const newCircles = document.querySelectorAll('.circle');
-    // for (let i = 0; i < activeStates.length; i++) {
-    //     if (activeStates[i]) {
-    //         newCircles[i].classList.add('active');
-    //     }
-    // }
-
-    // 3. Restart the sequencer loop
-    
     sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);
 });
+
+
+
+
+
+////////////////////////////////////// MAIN CODE ///////////////////////////////////////
 
 function generateBeats() {
     instruments.forEach(instrument => {
@@ -80,6 +148,9 @@ function clearSequencerGrid() {
 document.getElementById('hihatVolume').addEventListener('input', (event) => {
     hihatGain.gain.value = event.target.value;
 });
+document.getElementById('percVolume').addEventListener('input', (event) => {
+    percGain.gain.value = event.target.value;
+});
 document.getElementById('snareVolume').addEventListener('input', (event) => {
     snareGain.gain.value = event.target.value;
 });
@@ -94,29 +165,18 @@ function loadAudioFile(url, callback) {
         .then(data => audioContext.decodeAudioData(data, callback));
 }
 
-// Load the hi-hat sound
-loadAudioFile('/sequencer/sounds/hat2.wav', buffer => {
-    hihatBuffer = buffer;
-});
+loadAudioFile('/sequencer/sounds/hat2.wav', buffer => {hihatBuffer = buffer;});
+loadAudioFile('/sequencer/sounds/hat1.wav', buffer => {percBuffer = buffer;});
+loadAudioFile('/sequencer/sounds/snare1.wav', buffer => {snareBuffer = buffer;});
+loadAudioFile('/sequencer/sounds/kick1.wav', buffer => {kickBuffer = buffer;});
 
-// Load the snare sound
-loadAudioFile('/sequencer/sounds/snare1.wav', buffer => {
-    snareBuffer = buffer;
-});
-
-// Load the kick sound
-loadAudioFile('/sequencer/sounds/kick1.wav', buffer => {
-    kickBuffer = buffer;
-});
-
-let synth1Buffer, synth2Buffer;
-loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {
-    synth1Buffer = buffer;
-});
-
-loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {
-    synth2Buffer = buffer;
-});
+let synth1Buffer, synth2Buffer, synth_moon_1Buffer, synth_moon_2Buffer, synth_moon_3Buffer, synth_moon_4Buffer;
+loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {synth1Buffer = buffer;});
+loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {synth2Buffer = buffer;});
+loadAudioFile('/sequencer/sounds/synth_moon_1.wav', buffer => {synth_moon_1Buffer = buffer;});
+loadAudioFile('/sequencer/sounds/synth_moon_2.wav', buffer => {synth_moon_2Buffer = buffer;});
+loadAudioFile('/sequencer/sounds/synth_moon_3.wav', buffer => {synth_moon_3Buffer = buffer;});
+loadAudioFile('/sequencer/sounds/synth_moon_4.wav', buffer => {synth_moon_4Buffer = buffer;});
 
 let currentlyPlayingSynth = null;
 
@@ -141,6 +201,9 @@ function playInstrument(instrument) {
         case 'hihat':
             playSound(hihatBuffer, hihatGain);
             break;
+        case 'perc':
+            playSound(percBuffer, percGain);
+            break;    
         case 'snare':
             playSound(snareBuffer, snareGain);
             break;
@@ -152,7 +215,7 @@ function playInstrument(instrument) {
 
 // Your sequencer grid setup
 const grid = document.getElementById('sequencerGrid');
-const instruments = ['hihat', 'snare', 'kick'];
+const instruments = ['hihat', 'perc', 'snare', 'kick'];
 let circles = document.querySelectorAll('.circle');
 
 generateBeats();
@@ -327,18 +390,37 @@ function runSequencer() {
         if (playSectionBoxes.length) {
             const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
             if (currentSound === 'synth1' && synth1Buffer) {
-                // Stop the previously playing synth sound
                 if (currentlyPlayingSynth) {
                     currentlyPlayingSynth.stop();
                 }
                 currentlyPlayingSynth = playSound(synth1Buffer);
             } else if (currentSound === 'synth2' && synth2Buffer) {
-                // Stop the previously playing synth sound
                 if (currentlyPlayingSynth) {
                     currentlyPlayingSynth.stop();
                 }
                 currentlyPlayingSynth = playSound(synth2Buffer);
+            } else if (currentSound === 'synth_moon_1' && synth_moon_1Buffer) {
+                if (currentlyPlayingSynth) {
+                    currentlyPlayingSynth.stop();
+                }
+                currentlyPlayingSynth = playSound(synth_moon_1Buffer);
+            } else if (currentSound === 'synth_moon_2' && synth_moon_2Buffer) {
+                if (currentlyPlayingSynth) {
+                    currentlyPlayingSynth.stop();
+                }
+                currentlyPlayingSynth = playSound(synth_moon_2Buffer);
+            } else if (currentSound === 'synth_moon_3' && synth_moon_3Buffer) {
+                if (currentlyPlayingSynth) {
+                    currentlyPlayingSynth.stop();
+                }
+                currentlyPlayingSynth = playSound(synth_moon_3Buffer);
+            } else if (currentSound === 'synth_moon_4' && synth_moon_4Buffer) {
+                if (currentlyPlayingSynth) {
+                    currentlyPlayingSynth.stop();
+                }
+                currentlyPlayingSynth = playSound(synth_moon_4Buffer);
             }
+            
 
             currentSoundIndex = (currentSoundIndex + 1) % playSectionBoxes.length;
         }

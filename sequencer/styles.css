@@ -32,17 +32,10 @@ body {
     z-index: -1;
 }
 
-.hihat.active {
-    background-color: red;
-}
-
-.snare.active {
-    background-color: green;
-}
-
-.kick.active {
-    background-color: blue;
-}
+.hihat.active {background-color: red;}
+.perc.active {background-color: yellow;}
+.snare.active {background-color: green;}
+.kick.active {background-color: blue;}
 
 .current {
     box-shadow: 0 0 10px #d0d0d0;
@@ -60,7 +53,7 @@ body {
 .volumeSlider {
     width: 80%;  /* Adjust this value to match the sequencer grid width */
     margin-bottom: 10px;  /* Spacing between sliders */
-    margin: 21%;
+    /* margin: 21%; */
 }
 
 #controls {
@@ -69,20 +62,10 @@ body {
     margin-right: 20px;
 }
 
-/* For HiHat Slider */
-.hihatSlider::-webkit-slider-runnable-track {
-    background-color: red;  /* Light Gold Color */
-}
-
-/* For Snare Slider */
-.snareSlider::-webkit-slider-runnable-track {
-    background-color: green;  /* Light Orange-Red Color */
-}
-
-/* For Kick Slider */
-.kickSlider::-webkit-slider-runnable-track {
-    background-color: blue;  /* Light Forest Green Color */
-}
+.hihatSlider::-webkit-slider-runnable-track {background-color: red;}
+.percSlider::-webkit-slider-runnable-track {background-color: yellow;}
+.snareSlider::-webkit-slider-runnable-track {background-color: green;}
+.kickSlider::-webkit-slider-runnable-track {background-color: blue;}
 
 #mainContainer {
     display: flex;

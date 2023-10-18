@@ -19,10 +19,27 @@ different chords using numbers or something to accompany the beat. -->
     <div id="bpmPopup" style="position: absolute; top: 40px; left: 10px; display: none;">
         BPM: <input type="number" id="bpmInput" min="30" max="300" value="120">
     </div>
+
     <div id="volumeControls">
-        <input type="range" min="0" max="1" step="0.01" value="0.52" id="hihatVolume" class="volumeSlider hihatSlider">
-        <input type="range" min="0" max="1" step="0.01" value="0.52" id="snareVolume" class="volumeSlider snareSlider">
-        <input type="range" min="0" max="1" step="0.01" value="0.52" id="kickVolume" class="volumeSlider kickSlider">        
+        <div class="instrumentControls">
+            <select class="soundSelector"></select>
+            <input type="range" min="0" max="1" step="0.01" value="0.52" id="hihatVolume" class="volumeSlider hihatSlider">
+        </div>
+
+        <div class="instrumentControls">
+            <select class="soundSelector"></select>
+            <input type="range" min="0" max="1" step="0.01" value="0.52" id="percVolume" class="volumeSlider percSlider">
+        </div>
+
+        <div class="instrumentControls">
+            <select class="soundSelector"></select>
+            <input type="range" min="0" max="1" step="0.01" value="0.52" id="snareVolume" class="volumeSlider snareSlider">
+        </div>
+
+        <div class="instrumentControls">
+            <select class="soundSelector"></select>
+            <input type="range" min="0" max="1" step="0.01" value="0.52" id="kickVolume" class="volumeSlider kickSlider">        
+        </div>
     </div>
 
     <div id="beatChangeContainer">
@@ -55,7 +72,7 @@ different chords using numbers or something to accompany the beat. -->
     <div id="mainContainer">
 
         <div class="grid" id="sequencerGrid"></div>
-
+        <!-- <div class="grid" id="soundGrid"></div> -->
        
 
         <div id="playSection">
@@ -66,6 +83,10 @@ different chords using numbers or something to accompany the beat. -->
         <div id="soundBin">
             <div class="soundBox" data-sound="synth1">Synth 1</div>
             <div class="soundBox" data-sound="synth2">Synth 2</div>
+            <div class="soundBox" data-sound="synth_moon_1">Moon 1</div>
+            <div class="soundBox" data-sound="synth_moon_2">Moon 2</div>
+            <div class="soundBox" data-sound="synth_moon_3">Moon 3</div>
+            <div class="soundBox" data-sound="synth_moon_4">Moon 4</div>
             <!-- ... add more sound boxes as needed ... -->
         </div>
         
