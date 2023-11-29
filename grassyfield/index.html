@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grassy Landscape with Wind Animation</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Using modules we use type="module" in the script tag -->
+    <script type="module">
+        // Importing Three.js core and necessary controls and loaders as modules
+        // Importing Three.js core and necessary controls and loaders as modules
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three/build/three.module.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three/examples/jsm/loaders/GLTFLoader.js';
+
+
+        let scene, camera, renderer, clock;
+        let grassMeshes = [];
+        let terrainMesh;
+
+        const vertexShader = `
+            uniform float time;
+            uniform float frequency;
+            uniform float amplitude;
+
+            void main() {
+                vec3 newPosition = position;
+                newPosition.x = position.x + sin(position.y + time * frequency) * amplitude;
+                newPosition.z = position.z + sin(position.y + time * frequency) * amplitude;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+            }
+        `;
+
+        const grassMaterial = new THREE.ShaderMaterial({
+            vertexShader: vertexShader,
+            fragmentShader: THREE.ShaderLib.basic.fragmentShader,
+            uniforms: {
+                time: { value: 0 },
+                frequency: { value: 2.0 },
+                amplitude: { value: 0.1 }
+            }
+        });
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Load the grass model
+            const loader = new GLTFLoader();
+            loader.load('grassyfield/grass.glb', function(gltf) {
+                let grass = gltf.scene.children[0];
+                grass.material = grassMaterial;
+                grassMeshes.push(grass);
+                scene.add(grass);
+            });
+
+            // Load the terrain model
+            loader.load('grassyfield/terrain.glb', function(gltf) {
+                terrainMesh = gltf.scene.children[0];
+                scene.add(terrainMesh);
+            });
+
+            camera.position.z = 5;
+        }
+
+        function placeGrassOnTerrain() {
+            grassMeshes.forEach(grass => {
+                let ray = new THREE.Raycaster(grass.position, new THREE.Vector3(0, -1, 0));
+                let intersects = ray.intersectObject(terrainMesh);
+                if (intersects.length > 0) {
+                    grass.position.y = intersects[0].point.y;
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (terrainMesh) {
+                placeGrassOnTerrain();
+            }
+
+            grassMaterial.uniforms.time.value = clock.getElapsedTime();
+            renderer.render(scene, camera);
+        }
+
+        init();
+        animate();
+
+        // Handling window resize.
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

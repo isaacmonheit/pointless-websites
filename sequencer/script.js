@@ -9,10 +9,10 @@ const percGain = audioContext.createGain();
 const snareGain = audioContext.createGain();
 const kickGain = audioContext.createGain();
 
-hihatGain.gain.value = 1.0; 
-percGain.gain.value = 1.0; 
-snareGain.gain.value = 1.0;  
-kickGain.gain.value = 1.0;   
+hihatGain.gain.value = 0.52; 
+percGain.gain.value = 0.52; 
+snareGain.gain.value = 0.52;  
+kickGain.gain.value = 0.52;   
 
 let totalBeats = 16;
 let currentSoundIndex = 0;
@@ -21,6 +21,33 @@ let isDragging = false;
 let hasMoved = false;
 let initialPos = null;
 let dragStartedOnCircle = false;
+let swingValue = 0;  // Start with no swing
+
+// Allow the play section to accept dragged items
+const playSection = document.getElementById('playSection');
+const soundBin = document.getElementById('soundBin');
+
+
+//////////////////////////////// MUTE /////////////////////////////////////
+
+const muteButton = document.getElementById('muteButton');
+let isMuted = false;
+
+muteButton.addEventListener('click', () => {
+    isMuted = !isMuted;  // Toggle the mute state
+
+    // Update the gain values based on the mute state
+    const gainValue = isMuted ? 0 : 1.0;
+    hihatGain.gain.value = gainValue;
+    percGain.gain.value = gainValue;
+    snareGain.gain.value = gainValue;
+    kickGain.gain.value = gainValue;
+
+    // Update the button text based on the mute state
+    muteButton.textContent = isMuted ? "Unmute" : "Mute";
+});
+
+
 
 
 //////////////////////////////// CHANGING INDIVIDUAL SOUNDS /////////////////////////////////////
@@ -46,17 +73,52 @@ function switchSound(instrumentType, soundFile) {
     });
 }
 
+////////////////////// SOUNDS SOUNDS SOUNDS SOUNDS SOUNDS //////////////////////////
+////////////////////// SOUNDS SOUNDS SOUNDS SOUNDS SOUNDS //////////////////////////
+////////////////////// SOUNDS SOUNDS SOUNDS SOUNDS SOUNDS //////////////////////////
+////////////////////// SOUNDS SOUNDS SOUNDS SOUNDS SOUNDS //////////////////////////
+////////////////////// SOUNDS SOUNDS SOUNDS SOUNDS SOUNDS //////////////////////////
+
+
+// registerSound('synth-1', 'synth1.wav');
+// registerSound('synth-2', 'synth2.wav');
+// registerSound('moon-1', 'synth_moon_1.wav');
+// registerSound('moon-2', 'synth_moon_2.wav');
+// registerSound('moon-3', 'synth_moon_3.wav');
+// registerSound('moon-4', 'synth_moon_4.wav');
+registerSound('grass-1', 'grass_1.mp3');
+registerSound('grass-2', 'grass_2.mp3');
+registerSound('grass-3', 'grass_3.mp3');
+registerSound('grass-4', 'grass_4.mp3');
+registerSound('grass-5', 'grass_5.mp3');
+registerSound('grass-6', 'grass_6.mp3');
+registerSound('grass-7', 'grass_7.mp3');
+registerSound('m-1', 'mushrooms_1.mp3');
+registerSound('m-2', 'mushrooms_2.mp3');
+registerSound('m-3', 'mushrooms_3.mp3');
+registerSound('m-4', 'mushrooms_4.mp3');
+registerSound('m-5', 'mushrooms_5.mp3');
+registerSound('m-6', 'mushrooms_6.mp3');
+registerSound('m-7', 'mushrooms_7.mp3');
+registerSound('m-8', 'mushrooms_8.mp3');
+
 document.addEventListener("DOMContentLoaded", function() {
     const sounds = [
         {name: "hat_1", file: "hat1.wav"},
         {name: "hat_2", file: "hat2.wav"},
         {name: "hat_moon", file: "hat_moon.wav"},
+        {name: "hat_soft", file: "hat_soft.wav"},
         {name: "snare_1", file: "snare1.wav"},
         {name: "snare_moon", file: "snare_moon.wav"},
         {name: "kick_1", file: "kick1.wav"},
         {name: "kick_moon", file: "kick_moon.wav"},
-        {name: "open_hat_1", file: "open_hat.wav"}
-        // ... Add other sounds as needed ...
+        {name: "open_hat_1", file: "open_hat.wav"},
+        {name: "ride_guilty", file: "ride_guilty.wav"},
+        {name: "shaker_guilty", file: "shaker_guilty.wav"},
+        {name: "snap_1", file: "snap1.wav"},
+        {name: "clap_1", file: "clap1.wav"},
+        {name: "stab_1", file: "stab1.wav"},
+        {name: "thingy", file: "thingy.wav"},
     ];
 
     const soundSelectors = document.querySelectorAll(".soundSelector");
@@ -71,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const initialSounds = {
         hihat: 'hat1.wav',
-        perc: 'hat2.wav',
+        perc: 'open_hat.wav',
         snare: 'snare1.wav',
         kick: 'kick1.wav'
     };
@@ -135,7 +197,7 @@ function generateBeats() {
     circles = document.querySelectorAll('.circle');
     
     isDragging = false;
-    dragStartedOnCircle = false;
+    dragStartedOnCircle = false;    
 }
 
 
@@ -170,13 +232,41 @@ loadAudioFile('/sequencer/sounds/hat1.wav', buffer => {percBuffer = buffer;});
 loadAudioFile('/sequencer/sounds/snare1.wav', buffer => {snareBuffer = buffer;});
 loadAudioFile('/sequencer/sounds/kick1.wav', buffer => {kickBuffer = buffer;});
 
-let synth1Buffer, synth2Buffer, synth_moon_1Buffer, synth_moon_2Buffer, synth_moon_3Buffer, synth_moon_4Buffer;
-loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {synth1Buffer = buffer;});
-loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {synth2Buffer = buffer;});
-loadAudioFile('/sequencer/sounds/synth_moon_1.wav', buffer => {synth_moon_1Buffer = buffer;});
-loadAudioFile('/sequencer/sounds/synth_moon_2.wav', buffer => {synth_moon_2Buffer = buffer;});
-loadAudioFile('/sequencer/sounds/synth_moon_3.wav', buffer => {synth_moon_3Buffer = buffer;});
-loadAudioFile('/sequencer/sounds/synth_moon_4.wav', buffer => {synth_moon_4Buffer = buffer;});
+
+function registerSound(soundName, soundFile) {
+    // Load the sound buffer
+    loadAudioFile(`/sequencer/sounds/${soundFile}`, buffer => {
+        window[soundName + 'Buffer'] = buffer;  // Dynamically set the buffer variable based on sound name
+    });
+
+    // Add the sound to the sound bin
+    const soundBox = document.createElement('div');
+    soundBox.className = 'soundBox';
+    soundBox.dataset.sound = soundName;
+    soundBox.innerText = soundName.replace(/_/g, ' ');  // Convert underscores to spaces for display
+    soundBox.draggable = true;
+    soundBox.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', soundBox.dataset.sound);
+        e.dataTransfer.setData('source', 'soundBox');
+    });
+
+    soundBin.appendChild(soundBox);
+}
+
+
+
+// let synth1Buffer, synth2Buffer, synth_moon_1Buffer, synth_moon_2Buffer, synth_moon_3Buffer, synth_moon_4Buffer, grass_1Buffer, grass_2Buffer, grass_3Buffer, grass_4Buffer, grass_5Buffer;
+// loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {synth1Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {synth2Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_1.wav', buffer => {synth_moon_1Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_2.wav', buffer => {synth_moon_2Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_3.wav', buffer => {synth_moon_3Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_4.wav', buffer => {synth_moon_4Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_1.mp3', buffer => {grass_1Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_2.mp3', buffer => {grass_2Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_3.mp3', buffer => {grass_3Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_4.mp3', buffer => {grass_4Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_5.mp3', buffer => {grass_5Buffer = buffer;});
 
 let currentlyPlayingSynth = null;
 
@@ -243,6 +333,7 @@ bpmInput.addEventListener('change', () => {
     bpm = parseFloat(bpmInput.value);
     if (bpm >= 0 && bpm <= 1000) {
         clearInterval(sequencerInterval);
+        baseDuration = (60 / bpm) * 1000 / 4;  // The base duration for one 16th note
         sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);  // Divided by 4 for 16th notes
     }
 });
@@ -367,6 +458,7 @@ beatChangeSelect.addEventListener('change', (event) => {
     beatChange = parseInt(event.target.value, 10);
 });
 
+let baseDuration = (60 / bpm) * 1000 / 4;  // The base duration for one 16th note
 
 function runSequencer() {
     const allCircles = document.querySelectorAll('.circle');
@@ -382,45 +474,37 @@ function runSequencer() {
         }
     });
 
+    const specialBeatBox = document.querySelector(`#specialBeatSection .specialBeatBox[data-beat="${currentBeat}"]`);
+    if (specialBeatBox && specialBeatBox.dataset.sound) {
+        playInstrument(specialBeatBox.dataset.sound);
+    }
+
     // Move to the next beat
     currentBeat = (currentBeat + 1) % totalBeats;
+
+    let nextIntervalDuration;
+    if (currentBeat % 2 === 1) {
+        // For the "on-beat", use the base duration minus some fraction of the swing value
+        nextIntervalDuration = baseDuration + (baseDuration * 0.5 * swingValue);
+    } else {
+        // For the "off-beat", use the base duration plus some fraction of the swing value
+        nextIntervalDuration = baseDuration - (baseDuration * 0.5 * swingValue);
+    }
+
+    clearInterval(sequencerInterval);  // Clear the previous interval
+    sequencerInterval = setInterval(runSequencer, nextIntervalDuration);  // Set the new interval
 
     if (currentBeat % (Math.min(beatChange, totalBeats)) === 1 || beatChange === 1 || hasPlaySectionChanged) {
         const playSectionBoxes = playSection.querySelectorAll('.soundBox');
         if (playSectionBoxes.length) {
             const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
-            if (currentSound === 'synth1' && synth1Buffer) {
+            const currentBuffer = window[currentSound + 'Buffer'];
+            if (currentBuffer) {
                 if (currentlyPlayingSynth) {
                     currentlyPlayingSynth.stop();
                 }
-                currentlyPlayingSynth = playSound(synth1Buffer);
-            } else if (currentSound === 'synth2' && synth2Buffer) {
-                if (currentlyPlayingSynth) {
-                    currentlyPlayingSynth.stop();
-                }
-                currentlyPlayingSynth = playSound(synth2Buffer);
-            } else if (currentSound === 'synth_moon_1' && synth_moon_1Buffer) {
-                if (currentlyPlayingSynth) {
-                    currentlyPlayingSynth.stop();
-                }
-                currentlyPlayingSynth = playSound(synth_moon_1Buffer);
-            } else if (currentSound === 'synth_moon_2' && synth_moon_2Buffer) {
-                if (currentlyPlayingSynth) {
-                    currentlyPlayingSynth.stop();
-                }
-                currentlyPlayingSynth = playSound(synth_moon_2Buffer);
-            } else if (currentSound === 'synth_moon_3' && synth_moon_3Buffer) {
-                if (currentlyPlayingSynth) {
-                    currentlyPlayingSynth.stop();
-                }
-                currentlyPlayingSynth = playSound(synth_moon_3Buffer);
-            } else if (currentSound === 'synth_moon_4' && synth_moon_4Buffer) {
-                if (currentlyPlayingSynth) {
-                    currentlyPlayingSynth.stop();
-                }
-                currentlyPlayingSynth = playSound(synth_moon_4Buffer);
+                currentlyPlayingSynth = playSound(currentBuffer);
             }
-            
 
             currentSoundIndex = (currentSoundIndex + 1) % playSectionBoxes.length;
         }
@@ -431,7 +515,12 @@ function runSequencer() {
 
 
 
-
+const swingSlider = document.getElementById('swingSlider');
+swingSlider.addEventListener('input', (event) => {
+    swingValue = parseFloat(event.target.value);
+    clearInterval(sequencerInterval);
+    sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);
+});
 
 
 
@@ -444,6 +533,16 @@ function runSequencer() {
 
 /////////////////////////// DRAG AND DROP MECHANIC /////////////////////////////
 
+//special beatsss
+document.querySelectorAll('.specialBeatBox').forEach(box => {
+    box.addEventListener('dragover', dragOver);
+    box.addEventListener('drop', drop);
+});
+
+function dragOver(e) {
+    e.preventDefault();  // Allow dropping
+}
+
 // Make each sound box draggable
 document.querySelectorAll('.soundBox').forEach(box => {
     box.draggable = true;
@@ -454,9 +553,7 @@ document.querySelectorAll('.soundBox').forEach(box => {
     });
 });
 
-// Allow the play section to accept dragged items
-const playSection = document.getElementById('playSection');
-const soundBin = document.getElementById('soundBin');
+
 
 document.querySelectorAll('#playSection .soundBox').forEach(box => {
     box.draggable = true;

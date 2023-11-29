@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixelator</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="upload-container">
+  <h1>Big Pixelator</h1>
+  <input type="file" id="imageUpload" accept="image/*">
+</div>
+<div id="controls" style="position: absolute; left: 0; top: 0; padding: 10px;">
+    <div>
+      <label for="pixelationRange">Pixelation:</label>
+      <input type="range" id="pixelationRange" min="1" max="100" value="10">
+    </div>
+    <div>
+      <label for="mixRatioRange">Mix Ratio:</label>
+      <input type="range" id="mixRatioRange" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div>
+      <label for="brightnessRange">Brightness:</label>
+      <input type="range" id="brightnessRange" min="0" max="255" value="128">
+    </div>
+    <!-- Add other sliders as needed -->
+  </div>
+<div id="canvasContainer" style="margin-left: 200px;"> <!-- Adjust margin to fit your controls -->
+    <canvas id="canvas"></canvas>
+</div>  
+<script src="script.js"></script>
+</body>
+</html>
