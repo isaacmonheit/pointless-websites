@@ -1,7 +1,69 @@
-// Define global variables to store the slider values
+// Define global variables to store the slider values and seed
 let pixelationValue = 10;
 let mixRatioValue = 0.5;
 let brightnessValue = 128;
+let currentSeed = 0;
+let useFixedSeed = false;
+
+// A simple seedable random number generator
+function seededRandom(seed) {
+  var x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function generateSubduedColor(seed, index) {
+  const mixRatio = mixRatioValue;
+  const baseSeed = seed;
+  const rnd1 = seededRandom(baseSeed + index);
+  const rnd2 = seededRandom(baseSeed + index + 256);
+  const rnd3 = seededRandom(baseSeed + index + 512);
+
+  return [
+    Math.floor((rnd1 * 256 * (1 - mixRatio)) + (brightnessValue * mixRatio)),
+    Math.floor((rnd2 * 256 * (1 - mixRatio)) + (brightnessValue * mixRatio)),
+    Math.floor((rnd3 * 256 * (1 - mixRatio)) + (brightnessValue * mixRatio))
+  ];
+}
+
+function generateRandomSeed() {
+  return Math.floor(Math.random() * 10000);
+}
+
+function getRandomPalette() {
+  const palette = [];
+  console.log(useFixedSeed);
+  let seed = useFixedSeed ? currentSeed : generateRandomSeed();
+  console.log(seed);
+  for (let i = 0; i < 256; i++) {
+    palette.push(generateSubduedColor(seed, i));
+  }
+  if (!useFixedSeed) {
+    currentSeed = seed; // Update the current seed
+    document.getElementById('seedInput').value = currentSeed;
+  }
+  return palette;
+}
+
+// Event listener for seed input and checkbox
+document.getElementById('seedInput').addEventListener('change', function(event) {
+  currentSeed = parseInt(event.target.value);
+  processImage();
+});
+
+document.getElementById('useFixedSeed').addEventListener('change', function(event) {
+  useFixedSeed = event.target.checked;
+  processImage();
+});
+
+
+
+
+
+
+
+
+
+/// PIXELATION BELOW COLOR GENERATION ABOVE
 
 function pixelateImage(context, image) {
     const scaledWidth = image.width / pixelationValue;
@@ -66,24 +128,24 @@ function pixelateImage(context, image) {
 
   ///////////////// IDEA #2, SUBDUED COLORS /////////////////////
 
-  function generateSubduedColor() {
-    // Generate a random RGB color and mix it with gray (128, 128, 128) to subdue it
-    const baseColor = [brightnessValue, brightnessValue, brightnessValue]; // Gray
-    const mixRatio = mixRatioValue; // Adjust this to make colors more or less subdued
-    return [
-      Math.floor((Math.random() * 256 * mixRatio) + (baseColor[0] * (1 - mixRatio))),
-      Math.floor((Math.random() * 256 * mixRatio) + (baseColor[1] * (1 - mixRatio))),
-      Math.floor((Math.random() * 256 * mixRatio) + (baseColor[2] * (1 - mixRatio)))
-    ];
-  }
+  // function generateSubduedColor() {
+  //   // Generate a random RGB color and mix it with gray (128, 128, 128) to subdue it
+  //   const baseColor = [brightnessValue, brightnessValue, brightnessValue]; // Gray
+  //   const mixRatio = mixRatioValue; // Adjust this to make colors more or less subdued
+  //   return [
+  //     Math.floor((Math.random() * 256 * (1 - mixRatio)) + (baseColor[0] * (mixRatio))),
+  //     Math.floor((Math.random() * 256 * (1 - mixRatio)) + (baseColor[1] * (mixRatio))),
+  //     Math.floor((Math.random() * 256 * (1 - mixRatio)) + (baseColor[2] * (mixRatio)))
+  //   ];
+  // }
   
-  function getRandomPalette() {
-    const palette = [];
-    for (let i = 0; i < 256; i++) { // Generate 256 subdued colors
-      palette.push(generateSubduedColor());
-    }
-    return palette;
-  }
+  // function getRandomPalette() {
+  //   const palette = [];
+  //   for (let i = 0; i < 256; i++) { // Generate 256 subdued colors
+  //     palette.push(generateSubduedColor());
+  //   }
+  //   return palette;
+  // }
 
     ///////////////// END OF IDEA #2, SUBDUED COLORS /////////////////////
 
