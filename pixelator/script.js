@@ -4,6 +4,7 @@ let mixRatioValue = 0.5;
 let brightnessValue = 128;
 let currentSeed = 0;
 let useFixedSeed = false;
+let currentImageSrc = null;
 
 // A simple seedable random number generator
 function seededRandom(seed) {
@@ -44,16 +45,7 @@ function getRandomPalette() {
   return palette;
 }
 
-// Event listener for seed input and checkbox
-document.getElementById('seedInput').addEventListener('change', function(event) {
-  currentSeed = parseInt(event.target.value);
-  processImage();
-});
 
-document.getElementById('useFixedSeed').addEventListener('change', function(event) {
-  useFixedSeed = event.target.checked;
-  processImage();
-});
 
 
 
@@ -167,67 +159,141 @@ function convertToGrayscale(imageData) {
 
 
     // Add event listeners to update global variables when sliders change
-  document.getElementById('pixelationRange').addEventListener('change', function(event) {
-    pixelationValue = parseInt(event.target.value);
-    processImage();
-  });
-  
-  document.getElementById('mixRatioRange').addEventListener('change', function(event) {
-    mixRatioValue = parseFloat(event.target.value);
-    processImage();
-  });
-  
-  document.getElementById('brightnessRange').addEventListener('change', function(event) {
-    brightnessValue = parseInt(event.target.value);
-    processImage();
-  });
+    document.getElementById('pixelationRange').addEventListener('change', debounce(function(event) {
+      pixelationValue = parseInt(event.target.value);
+      if (currentImageSrc) {
+        processImage(currentImageSrc);
+      }
+    }, 1));
+    
+    document.getElementById('mixRatioRange').addEventListener('change', debounce(function(event) {
+      mixRatioValue = parseFloat(event.target.value);
+      if (currentImageSrc) {
+        processImage(currentImageSrc);
+      }
+    }, 1));
+    
+    document.getElementById('brightnessRange').addEventListener('change', debounce(function(event) {
+      brightnessValue = parseInt(event.target.value);
+      if (currentImageSrc) {
+        processImage(currentImageSrc);
+      }
+    }, 1));
+
+    // Event listener for seed input and checkbox
+    document.getElementById('seedInput').addEventListener('change', debounce(function(event) {
+      currentSeed = parseInt(event.target.value);
+      if (currentImageSrc) {
+        processImage(currentImageSrc);
+      }
+    }, 1));
+
+    document.getElementById('useFixedSeed').addEventListener('change', function(event) {
+      useFixedSeed = event.target.checked;
+      if (currentImageSrc) {
+        processImage(currentImageSrc);
+      }
+    });
 
 // This function will handle the image processing
-function processImage() {
-    // Create a new Image object
-    const img = new Image();
-    img.onload = function() {
-      // Get the canvas and context
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      
-      // Set canvas size to image size
-      canvas.width = img.width;
-      canvas.height = img.height;
-      
-      // Draw the uploaded image onto the canvas
-      ctx.drawImage(img, 0, 0);
-      
-      // Apply pixelation and color replacement
-      pixelateImage(ctx, img);
-      let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      imageData = replaceColors(imageData);
-      
-      // Put the processed image data back onto the canvas
-      ctx.putImageData(imageData, 0, 0);
-      
-      // Display the canvas
-      canvas.style.display = 'block';
+function processImage(imgSrc) {
+  const img = new Image();
+  img.onload = function() {
+    // Create a temporary canvas to resize the image
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    const maxDimension = 800; // Maximum size of the smaller image
+    tempCanvas.width = (img.width > img.height) ? maxDimension : (img.width / img.height) * maxDimension;
+    tempCanvas.height = (img.height > img.width) ? maxDimension : (img.height / img.width) * maxDimension;
+    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+
+    // Get the canvas and context for actual processing
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    canvas.width = tempCanvas.width;
+    canvas.height = tempCanvas.height;
+    ctx.drawImage(tempCanvas, 0, 0); // Draw the resized image onto the main canvas
+
+    // Apply pixelation and color replacement
+    pixelateImage(ctx, img);
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    imageData = replaceColors(imageData);
+
+    // Put the processed image data back onto the canvas
+    ctx.putImageData(imageData, 0, 0);
+  };
+  img.src = imgSrc;
+}
+
+
+  // Add this inside your file input's change event listener
+// function createSmallImage(src) {
+//   const img = new Image();
+//   img.onload = function() {
+//     const canvas = document.createElement('canvas');
+//     const ctx = canvas.getContext('2d');
+//     const maxDimension = 800; // Maximum size of the smaller image
+//     canvas.width = (img.width > img.height) ? maxDimension : (img.width / img.height) * maxDimension;
+//     canvas.height = (img.height > img.width) ? maxDimension : (img.height / img.width) * maxDimension;
+//     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+//     processImage.imgSrc = canvas.toDataURL(); // Use the resized image for processing
+//     processImage();
+//   };
+//   img.src = src;
+// }
+
+document.getElementById('imageUpload').addEventListener('change', function(event) {
+  if (event.target.files && event.target.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      currentImageSrc = e.target.result;
+      processImage(currentImageSrc);
     };
-    
-    // Use the stored image source
-    img.src = processImage.imgSrc;
+    reader.readAsDataURL(event.target.files[0]);
   }
-  
-  // This event listener is attached to the file input
-  document.getElementById('imageUpload').addEventListener('change', function(event) {
-    if (event.target.files && event.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        // Store the image source and process the image
-        processImage.imgSrc = e.target.result;
-        processImage();
-      };
-      reader.readAsDataURL(event.target.files[0]);
-    }
-  });
-  
-  // You can assign a default image here
-//   processImage.imgSrc = 'IMG_1223.jpg';
-//   processImage(); // Uncomment these lines if you have a default image to load initially
-  
+});
+
+
+// good for waiting for input changes, use in addEventListener
+function debounce(func, delay) {
+  let debounceTimer;
+  return function() {
+    const context = this;
+    const args = arguments;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+}
+
+// Add this in your JavaScript
+document.getElementById('downloadBtn').addEventListener('click', function() {
+  const canvas = document.getElementById('canvas');
+  const img = document.createElement('a');
+  img.href = canvas.toDataURL('image/png');
+  img.download = 'i-love-this-image.png';
+  img.click();
+});
+
+
+//////EXPONENTIALIZE
+function exponentializeImage() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Store the current image
+  currentImageSrc = canvas.toDataURL('image/png');
+
+  // Apply the pixelation to the stored image
+  processImage(currentImageSrc);
+
+  // Apply a blur effect
+  const blurValue = 5; // The radius of the blur, adjust as needed
+  ctx.filter = 'blur(' + blurValue + 'px)';
+  ctx.drawImage(canvas, 0, 0);
+  ctx.filter = 'none'; // Reset the filter to none
+
+  // Store the new image after pixelation and blur
+  currentImageSrc = canvas.toDataURL('image/png');
+}
+
+document.getElementById('exponentializeBtn').addEventListener('click', exponentializeImage);

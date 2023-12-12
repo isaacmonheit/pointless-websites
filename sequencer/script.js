@@ -80,12 +80,12 @@ function switchSound(instrumentType, soundFile) {
 ////////////////////// SOUNDS SOUNDS SOUNDS SOUNDS SOUNDS //////////////////////////
 
 
-// registerSound('synth-1', 'synth1.wav');
-// registerSound('synth-2', 'synth2.wav');
-// registerSound('moon-1', 'synth_moon_1.wav');
-// registerSound('moon-2', 'synth_moon_2.wav');
-// registerSound('moon-3', 'synth_moon_3.wav');
-// registerSound('moon-4', 'synth_moon_4.wav');
+registerSound('synth-1', 'synth1.wav');
+registerSound('synth-2', 'synth2.wav');
+registerSound('moon-1', 'synth_moon_1.wav');
+registerSound('moon-2', 'synth_moon_2.wav');
+registerSound('moon-3', 'synth_moon_3.wav');
+registerSound('moon-4', 'synth_moon_4.wav');
 registerSound('grass-1', 'grass_1.mp3');
 registerSound('grass-2', 'grass_2.mp3');
 registerSound('grass-3', 'grass_3.mp3');
@@ -101,6 +101,20 @@ registerSound('m-5', 'mushrooms_5.mp3');
 registerSound('m-6', 'mushrooms_6.mp3');
 registerSound('m-7', 'mushrooms_7.mp3');
 registerSound('m-8', 'mushrooms_8.mp3');
+
+
+
+// loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {synth1Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {synth2Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_1.wav', buffer => {synth_moon_1Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_2.wav', buffer => {synth_moon_2Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_3.wav', buffer => {synth_moon_3Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/synth_moon_4.wav', buffer => {synth_moon_4Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_1.mp3', buffer => {grass_1Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_2.mp3', buffer => {grass_2Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_3.mp3', buffer => {grass_3Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_4.mp3', buffer => {grass_4Buffer = buffer;});
+// loadAudioFile('/sequencer/sounds/grass_5.mp3', buffer => {grass_5Buffer = buffer;});
 
 document.addEventListener("DOMContentLoaded", function() {
     const sounds = [
