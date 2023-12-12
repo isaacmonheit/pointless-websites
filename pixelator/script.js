@@ -276,24 +276,100 @@ document.getElementById('downloadBtn').addEventListener('click', function() {
 
 
 //////EXPONENTIALIZE
+
+//OLD EXPONENTIALIZE (DONT DELETE YET IM NOT SURE IF ITS DIFFERENT THAN NEW YET)???????????????
+// function exponentializeImage() {
+//   const canvas = document.getElementById('canvas');
+//   const ctx = canvas.getContext('2d');
+
+//   // Store the current image
+//   currentImageSrc = canvas.toDataURL('image/png');
+
+//   // Apply the pixelation to the stored image
+//   processImage(currentImageSrc);
+
+//   // Apply a blur effect
+//   const blurValue = 5; // The radius of the blur, adjust as needed
+//   ctx.filter = 'blur(' + blurValue + 'px)';
+//   ctx.drawImage(canvas, 0, 0);
+//   ctx.filter = 'none'; // Reset the filter to none
+
+//   // Store the new image after pixelation and blur
+//   currentImageSrc = canvas.toDataURL('image/png');
+// }
+
+let offScreenCanvas = document.createElement('canvas');
+let offScreenCtx = offScreenCanvas.getContext('2d');
+
 function exponentializeImage() {
   const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
 
-  // Store the current image
-  currentImageSrc = canvas.toDataURL('image/png');
+  // Draw the current image onto the off-screen canvas
+  offScreenCtx.drawImage(canvas, 0, 0);
 
-  // Apply the pixelation to the stored image
+  currentImageSrc = offScreenCanvas.toDataURL('image/png');
   processImage(currentImageSrc);
 
-  // Apply a blur effect
-  const blurValue = 5; // The radius of the blur, adjust as needed
-  ctx.filter = 'blur(' + blurValue + 'px)';
-  ctx.drawImage(canvas, 0, 0);
-  ctx.filter = 'none'; // Reset the filter to none
+  // Apply the blur effect on the off-screen canvas
+  const blurValue = 5; // Adjust as needed
+  offScreenCtx.filter = 'blur(' + blurValue + 'px)';
+  offScreenCtx.drawImage(offScreenCanvas, 0, 0);
+  offScreenCtx.filter = 'none';
 
-  // Store the new image after pixelation and blur
-  currentImageSrc = canvas.toDataURL('image/png');
+  // Now apply the pixelation and other effects on the blurred image
+  currentImageSrc = offScreenCanvas.toDataURL('image/png');
 }
 
 document.getElementById('exponentializeBtn').addEventListener('click', exponentializeImage);
+
+//////SHIFT IMAGE
+let shiftInterval;
+let isShifting = false;
+
+function toggleShift() {
+  if (isShifting) {
+    clearInterval(shiftInterval); // Stop the interval
+    isShifting = false;
+  } else {
+    const shiftSpeed = document.getElementById('shiftSpeedSlider').value;
+    shiftInterval = setInterval(shiftImage, shiftSpeed); // Use the slider value
+    isShifting = true;
+  }
+}
+
+document.getElementById('shiftSpeedSlider').addEventListener('input', function() {
+  if (isShifting) {
+    clearInterval(shiftInterval);
+    const shiftSpeed = document.getElementById('shiftSpeedSlider').value;
+    shiftInterval = setInterval(shiftImage, shiftSpeed);
+  }
+});
+
+
+function shiftImage() {
+  offScreenCanvas.width = canvas.width;
+  offScreenCanvas.height = canvas.height;
+  offScreenCtx.drawImage(canvas, 0, 0); // Copy current image to off-screen canvas
+
+  const img = new Image();
+  img.onload = function() {
+    offScreenCtx.drawImage(img, 0, 0);
+    pixelateImage(offScreenCtx, img);
+    let imageData = offScreenCtx.getImageData(0, 0, offScreenCanvas.width, offScreenCanvas.height);
+    imageData = replaceColors(imageData);
+    offScreenCtx.putImageData(imageData, 0, 0);
+
+    // Update the main canvas after processing
+    const mainCanvas = document.getElementById('canvas');
+    const mainCtx = mainCanvas.getContext('2d');
+    mainCanvas.width = offScreenCanvas.width;
+    mainCanvas.height = offScreenCanvas.height;
+    mainCtx.drawImage(offScreenCanvas, 0, 0);
+  };
+  img.src = canvas.toDataURL('image/png');
+}
+
+document.getElementById('shiftBtn').addEventListener('click', toggleShift);
+
