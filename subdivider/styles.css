@@ -1,0 +1,48 @@
+.circle.current {
+    border: 2px solid blue; /* Or any other style to indicate the current step */
+  }
+
+  /* Add to your existing style tags or CSS file */
+.circle {
+    position: relative;
+    display: inline-block;
+    width: 60px; /* Set the width smaller than the height for a vertical rectangle */
+    height: 180px; /* Set the height larger than the width */
+    border-radius: 5px; /* Adjust the border-radius to your preference for rounded corners */
+    background: gray;
+    margin: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.circle.active {
+    background: red;
+}
+
+.circle-label {
+    position: absolute;
+    bottom: 20px; /* Adjust as needed */
+    width: 100%;
+    text-align: center;
+    font-size: 16px; /* Adjust font size as needed */
+    color: black; /* Set the text color */
+    user-select: none; /* Prevent text selection */
+  }  
+  
+#sequencer-container {
+    text-align: center; /* Centers the inline-block circles */
+    margin-top: 20px;
+}
+
+body {
+    display: block;
+    justify-content: center; /* Centers the container horizontally */
+    align-items: center; /* Centers the container vertically */
+    min-height: 100vh; /* At least the height of the viewport */
+    /* margin: 0; Removes default margin */
+}
+
+/* Add this to remove the scrollbar if the content fits in the viewport */
+html, body {
+    overflow: hidden;
+}

@@ -488,10 +488,10 @@ function runSequencer() {
         }
     });
 
-    const specialBeatBox = document.querySelector(`#specialBeatSection .specialBeatBox[data-beat="${currentBeat}"]`);
-    if (specialBeatBox && specialBeatBox.dataset.sound) {
-        playInstrument(specialBeatBox.dataset.sound);
-    }
+    // const specialBeatBox = document.querySelector(`#specialBeatSection .specialBeatBox[data-beat="${currentBeat}"]`);
+    // if (specialBeatBox && specialBeatBox.dataset.sound) {
+    //     playInstrument(specialBeatBox.dataset.sound);
+    // }
 
     // Move to the next beat
     currentBeat = (currentBeat + 1) % totalBeats;
@@ -548,24 +548,24 @@ swingSlider.addEventListener('input', (event) => {
 /////////////////////////// DRAG AND DROP MECHANIC /////////////////////////////
 
 //special beatsss
-document.querySelectorAll('.specialBeatBox').forEach(box => {
-    box.addEventListener('dragover', dragOver);
-    box.addEventListener('drop', drop);
-});
+// document.querySelectorAll('.specialBeatBox').forEach(box => {
+//     box.addEventListener('dragover', dragOver);
+//     box.addEventListener('drop', drop);
+// });
 
-function dragOver(e) {
-    e.preventDefault();  // Allow dropping
-}
+// function dragOver(e) {
+//     e.preventDefault();  // Allow dropping
+// }
 
-// Make each sound box draggable
-document.querySelectorAll('.soundBox').forEach(box => {
-    box.draggable = true;
+// // Make each sound box draggable
+// document.querySelectorAll('.soundBox').forEach(box => {
+//     box.draggable = true;
 
-    box.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', box.dataset.sound);
-        e.dataTransfer.setData('source', 'soundBox'); // Indicate the source of the drag
-    });
-});
+//     box.addEventListener('dragstart', e => {
+//         e.dataTransfer.setData('text/plain', box.dataset.sound);
+//         e.dataTransfer.setData('source', 'soundBox'); // Indicate the source of the drag
+//     });
+// });
 
 
 
