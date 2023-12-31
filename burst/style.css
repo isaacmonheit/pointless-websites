@@ -1,0 +1,32 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background-color: #282c34; /* Dark background for contrast */
+}
+
+#artCanvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000; /* Black canvas background */
+}
+
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    color: #61dafb; /* Light blue for text, matching new theme */
+}
+
+label {
+    display: block; /* Ensures each label is on a new line */
+    margin-bottom: -20px; /* Spacing between sliders */
+}
+
+input[type=range] {
+    width: 200px; /* Adjust width as needed */
+}

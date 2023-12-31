@@ -2,34 +2,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const sequencerContainer = document.getElementById('sequencer-container');
   const stepsInput = document.getElementById('steps');
 
-  // // Function to play a sound
-  // function playSound() {
-  //   console.log('Play sound here');
-  //   // In a real implementation, you would trigger a sound here using the Web Audio API or an audio library
-  // }
-
-  // Function to update the active step
-  function updateActiveStep() {
-    const circles = sequencerContainer.querySelectorAll('.circle');
-    circles.forEach((circle, index) => {
-      if (index === currentStep) {
-        circle.classList.add('current');
-        playSound(sound3); // Play sound3 on every beat
-  
-        if (index === 0 && isPlaying) { // Check if it's the first beat and the sequencer is playing
-          playSound(sound2);
-        }
-        if (circle.classList.contains('active')) {
-          playSound(sound1);
-        }
-      } else {
-        circle.classList.remove('current');
-      }
-    });
-  }
-
-
-
   ////////////////////// MOUSE DOWN DRAG FUNCTION /////////////////////
 
 
@@ -119,17 +91,6 @@ document.addEventListener('DOMContentLoaded', function () {
   let bpm = 120; // You can change this value or make it dynamic
   let intervalId = null;
 
-  // Function to start the sequencer
-  // function startSequencer() {
-  //   const intervalTime = ((60 / bpm) * 1000 / 4); // Convert BPM to milliseconds
-  //   isPlaying = true;
-
-  //   intervalId = setInterval(() => {
-  //     updateActiveStep();
-  //     currentStep = (currentStep + 1) % stepsInput.value; // Loop back to first step
-  //   }, intervalTime);
-  // }
-
   // Function to stop the sequencer
   function stopSequencer() {
     if (intervalId) {
@@ -172,26 +133,73 @@ document.addEventListener('DOMContentLoaded', function () {
       startSequencer();
     }
   });
-});
+
 
 
 
 ////////////////////// SOUNDS /////////////////////
 
 
-// Create audio objects
-const sound1 = new Audio('/subdivider/sounds/click.wav');
-const sound2 = new Audio('/subdivider/sounds/snap1.wav');
-const sound3 = new Audio('/subdivider/sounds/shaker_guilty2.mp3'); // Adjust the path as necessary
-sound3.volume = 0.1; // Set volume to a lower level, e.g., 50%
+  // Create audio objects
+  const sound1 = new Audio('/subdivider/sounds/click.wav');
+  const sound2 = new Audio('/subdivider/sounds/snap1.wav');
+  const sound3 = new Audio('/subdivider/sounds/shaker_guilty2.mp3'); // Adjust the path as necessary
+  sound3.volume = 0.1; // Set volume to a lower level, e.g., 50%
 
-sound1.preload = 'auto';
-sound2.preload = 'auto';
-sound3.preload = 'auto';
+  sound1.preload = 'auto';
+  sound2.preload = 'auto';
+  sound3.preload = 'auto';
 
-// Function to play a sound
-function playSound(sound) {
-  sound.currentTime = 0; // Rewind to the start
-  sound.play();
-}
+  // Function to play a sound
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+  // Function to load and decode an audio file
+  function loadSound(url) {
+    return fetch(url)
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer));
+  }
+
+  // Function to play a sound
+  function playSound(buffer, time = audioContext.currentTime, gainValue = 1.0) {
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = gainValue;
+  
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(gainNode).connect(audioContext.destination);
+    source.start(time); // Schedule the start
+  }
+
+   // Load your sounds
+   let sound1Buffer, sound2Buffer, sound3Buffer;
+   loadSound('/subdivider/sounds/click.wav').then(buffer => sound1Buffer = buffer);
+   loadSound('/subdivider/sounds/snap1.wav').then(buffer => sound2Buffer = buffer);
+   loadSound('/subdivider/sounds/shaker_guilty2.mp3').then(buffer => sound3Buffer = buffer);
+ 
+   // ... (rest of your existing code)
+ 
+   // Update your existing playSound call with playSound function using buffers
+   // For example, in updateActiveStep(), replace playSound(sound1) with playSound(sound1Buffer)
+ 
+   // Function to update the active step
+   function updateActiveStep() {
+     const circles = sequencerContainer.querySelectorAll('.circle');
+     circles.forEach((circle, index) => {
+       if (index === currentStep) {
+         circle.classList.add('current');
+         playSound(sound3Buffer, 0.1); // Play sound3 on every beat
+ 
+         if (index === 0 && isPlaying) { // Check if it's the first beat and the sequencer is playing
+           playSound(sound2Buffer);
+         }
+         if (circle.classList.contains('active')) {
+           playSound(sound1Buffer);
+         }
+       } else {
+         circle.classList.remove('current');
+       }
+     });
+   }
+
+});
