@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function toggleCircle(circle) {
     circle.classList.toggle('active');
     if (circle.classList.contains('active')) {
-      playSound(sound1);
+      playSound(sound1Buffer);
     }
   }
   
@@ -91,39 +91,14 @@ document.addEventListener('DOMContentLoaded', function () {
   let bpm = 120; // You can change this value or make it dynamic
   let intervalId = null;
 
-  // Function to stop the sequencer
-  function stopSequencer() {
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-    isPlaying = false;
-    currentStep = 0; // Reset to first step
-    // Do not call updateActiveStep() here, or conditionally check if the sequencer is playing before playing sound2
-    const circles = sequencerContainer.querySelectorAll('.circle');
-    circles.forEach(circle => circle.classList.remove('current')); // Remove 'current' class from all circles
-  }
-
+  
   /////////////////////////// BPM STUFF ////////////////////////////////////
 
   // Add a new global variable for the BPM input
   const bpmInput = document.getElementById('bpm');
 
   // Modify the startSequencer function to use the current BPM value
-  function startSequencer() {
-    bpm = parseInt(bpmInput.value); // Ensure bpm is an integer
-    const intervalTime = ((60 / bpm) * 1000 / 4); // Convert BPM to milliseconds
-    isPlaying = true;
-    
-    // Clear any existing intervals before setting a new one
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-
-    intervalId = setInterval(() => {
-      updateActiveStep();
-      currentStep = (currentStep + 1) % sequencerContainer.querySelectorAll('.circle').length; // Loop back to first step
-    }, intervalTime);
-  }
+ 
 
   // Add event listener for BPM changes
   bpmInput.addEventListener('input', function () {
@@ -141,14 +116,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
   // Create audio objects
-  const sound1 = new Audio('/subdivider/sounds/click.wav');
-  const sound2 = new Audio('/subdivider/sounds/snap1.wav');
-  const sound3 = new Audio('/subdivider/sounds/shaker_guilty2.mp3'); // Adjust the path as necessary
-  sound3.volume = 0.1; // Set volume to a lower level, e.g., 50%
+  // const sound1 = new Audio('/subdivider/sounds/click.wav');
+  // const sound2 = new Audio('/subdivider/sounds/snap1.wav');
+  // const sound3 = new Audio('/subdivider/sounds/shaker_guilty2.mp3'); // Adjust the path as necessary
+  // sound3.volume = 0.1; // Set volume to a lower level, e.g., 50%
 
-  sound1.preload = 'auto';
-  sound2.preload = 'auto';
-  sound3.preload = 'auto';
+  // sound1.preload = 'auto';
+  // sound2.preload = 'auto';
+  // sound3.preload = 'auto';
 
   // Function to play a sound
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -202,4 +177,39 @@ document.addEventListener('DOMContentLoaded', function () {
      });
    }
 
+
+  function startSequencer() {
+    bpm = parseInt(bpmInput.value); // Ensure bpm is an integer
+    let intervalTime = ((60 / bpm) * 1000 / 4); // Convert BPM to milliseconds
+    isPlaying = true;
+    
+    // Clear any existing intervals before setting a new one
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+
+    intervalId = setInterval(() => {
+      updateActiveStep();
+      currentStep = (currentStep + 1) % sequencerContainer.querySelectorAll('.circle').length; // Loop back to first step
+    }, intervalTime);
+  }
+
+  // Function to stop the sequencer
+  function stopSequencer() {
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+    isPlaying = false;
+    currentStep = 0; // Reset to first step
+    // Do not call updateActiveStep() here, or conditionally check if the sequencer is playing before playing sound2
+    const circles = sequencerContainer.querySelectorAll('.circle');
+    circles.forEach(circle => circle.classList.remove('current')); // Remove 'current' class from all circles
+  }
+
+
 });
+
+
+
+
+
