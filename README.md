@@ -1,2 +1,2 @@
-# pointless websites
- the most pointless websites ever
+# Personal Site
+My personal website, just has some random websties I made right now

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Swirl Effect on Image</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            border: 2px solid black;
+            margin-top: 20px;
+            max-width: 70vh;
+            max-height: 70vh;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Apply a Swirl Effect to Your Image!</h1>
+    <input type="file" id="upload" accept="image/*"><br><br>
+    <button onclick="applySwirl()">Apply Swirl Effect</button><br><br>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var uploadedImage;
+
+        document.getElementById('upload').addEventListener('change', function(e) {
+            var reader = new FileReader();
+            reader.onload = function(event){
+                var img = new Image();
+                img.onload = function(){
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                }
+                img.src = event.target.result;
+                uploadedImage = img;
+            }
+            reader.readAsDataURL(e.target.files[0]);     
+        });
+
+        function applySwirl() {
+            if (!uploadedImage) return;
+
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageData.data;
+            var width = imageData.width;
+            var height = imageData.height;
+            var centerX = width / 2;
+            var centerY = height / 2;
+            var radius = Math.min(width, height) / 2;
+            var strength = 10; // Swirl strength
+
+            for (var y = 0; y < height; y++) {
+                for (var x = 0; x < width; x++) {
+                    var dx = x - centerX;
+                    var dy = y - centerY;
+                    var distance = Math.sqrt(dx * dx + dy * dy);
+                    var angle = Math.atan2(dy, dx);
+
+                    if (distance < radius) {
+                        var swirl = strength * (radius - distance) / radius;
+                        angle += swirl;
+                    }
+
+                    var srcX = Math.floor(centerX + Math.cos(angle) * distance);
+                    var srcY = Math.floor(centerY + Math.sin(angle) * distance);
+
+                    srcX = Math.min(width - 1, Math.max(0, srcX));
+                    srcY = Math.min(height - 1, Math.max(0, srcY));
+
+                    var srcIndex = (srcY * width + srcX) * 4;
+                    var destIndex = (y * width + x) * 4;
+
+                    data[destIndex] = imageData.data[srcIndex];
+                    data[destIndex + 1] = imageData.data[srcIndex + 1];
+                    data[destIndex + 2] = imageData.data[srcIndex + 2];
+                    data[destIndex + 3] = 255;
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+    </script>
+
+</body>
+</html>
