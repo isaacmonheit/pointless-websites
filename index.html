@@ -1,4 +1,3 @@
-<!-- look at justpointless.com -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,58 +6,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pointless Websites</title>
     <style>
-        /* Basic styling for the navigation bar */
-        nav {
-            background-color: #333;
-            overflow: hidden;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1f1471;
         }
-
-        nav a {
-            float: left;
-            display: block;
-            color: white;
+        .header {
             text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
+            padding: 50px;
+            padding-bottom: 40px;
+            /* background-color: #fff; */
+        }
+        .title {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px #000000;
+            user-select: none;
+        }
+        p {
+            color: #cacaca;
+            font-size: 1.0em;
+            margin-top: 5px;
+            margin-bottom: 0px;
+            text-shadow: 2px 2px 4px #000000;
+        }
+        .p2 {
+            font-size: 0.8em;
         }
 
-        nav a:hover {
-            background-color: #ddd;
-            color: black;
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+        .grid-item {
+            background-color: #ffffff;
+            border-radius: 22px;
+            padding: 3px;
+            transition: transform 0.2s ease;
+        }
+
+        .grid-item:hover {
+            /* transform: translateY(-5px); */
+            /* make the item larger */
+            transform: scale(1.05);
+            /* border-color: #aaa; */
+        }
+
+        .grid-item img {
+            /* stretch img to make it so it fits the whole box */
+            width: 100%;
+            height: fit-content;
+            border-radius: 20px;
+            display: block;
+            object-fit: cover;
+        }
+        /* .grid-item a {
+            color: #333;
+            text-decoration: none;
+            font-weight: bold;
+        } */
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="/">Home</a>
-        <!-- Add more links as you create more sub-websites -->
-    </nav>
-    <h1>Welcome to Pointless Websites</h1>
-    <p>Discover a collection of fun, random, and utterly pointless websites!</p>
-    <!-- List of sub-websites -->
-    <ul>
-        <!-- Example entry -->
-        <li><a href="/onepianokey">One Piano Key</a> - Experience the joy of pressing a single piano key.</li>
-        <li><a href="https://isaacmonheit.com">Breathe.</a> - Just Breathe.</li>
-        <li><a href="/sequencer">Basic Seqeuncer</a> - minimal function, just make beat (WIP)</li>
-        <li><a href="/chromesthesia">Chromesthesia</a> - image -> sound (incomplete)</li>
-        <li><a href="https://isaacmonheit.github.io/view3d/">view3d</a> - 3d image</li>
-        <li><a href="/hecticness/">Hecticness</a> - idk what's happening</li>
-        <li><a href="/wave/">wave</a> - the waveeee (incomplete)</li>
-        <li><a href="/grassyfield/">Grassy Field</a> - wind and song and beauty (incomplete)</li>
-        <li><a href="https://isaacmonheit.github.io/AudioVisualizer/">Audio Visualizer</a> - live audio analysis (doesn't work on computer chrome for some reason)</li>
-        <li><a href="/pixelator/">pixelator</a> - give it any image</li>    
-        <li><a href="/subdivider/">Subdivider</a> - to help with subdividing odd time signatures (WIP) </li>   
-        <li><a href="/burst/">Burst</a> - burst of color</li>   
-        <li><a href="/swirl/">swirl</a> - swirl an image (WIP)</li>   
-        <li><a href="/ascii/">ascii</a> - text to ascii art (WIP)</li>   
-        <li><a href="/Wildflower_Restoration_Project/">Wildflower Restoration Project</a> - artist website</li>
-        <li><a href="/cube/">CUBE</a> - interactive cube</li>   
-        <li><a href="/holographic_image/">holographic_image</a> - interactive holographic image</li>   
-        <li><a href="/pyramid/">PYRAMID</a> - interactive pyramid</li>   
-        <li><a href="/aurora/">aurora</a> - goal is to simulate live time aurora</li>   
-        
-        <!-- Add more entries as you create more sub-websites -->
-    </ul>
+
+
+    <div class="header">
+        <h1 class="title">ZONK PROJECTS</h1>
+        <p>various projects made by zonk, some wierd, some interesting</p>
+        <p class="p2">hope you enjoy :)</p>
+    </div>
+    
+
+    <div class="grid-container">
+        <div class="grid-item">
+            <div>
+                <a href="/onepianokey/">
+                    <img src="home_page_images/one_piano_key.png" alt="One Piano Key">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item">
+            <div>
+                <a href="https://isaacmonheit-7qlh5.ondigitalocean.app/">
+                    <img src="home_page_images/breathe.png" alt="Breathe.">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item" style="background-color: black; padding: 5px">
+            <div>
+                <a href="/sequencer/">
+                    <img src="home_page_images/sequencer.png" alt="Seqeuncer">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item" style="background-color: black; padding: 5px">
+            <div>
+                <a href="https://isaacmonheit.github.io/view3d/">
+                    <img src="home_page_images/view3d.png" alt="view3d">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item" style="background-color: black; padding: 5px">
+            <div>
+                <a href="/pixelator/">
+                    <img src="home_page_images/pixelator.png" alt="pixelator">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item">
+            <div>
+                <a href="/burst/">
+                    <img src="home_page_images/burst.png" alt="burst">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item">
+            <div>
+                <a href="/cube/">
+                    <img src="home_page_images/cube.png" alt="cube">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item">
+            <div>
+                <a href="/aurora/">
+                    <img src="home_page_images/aurora.png" alt="aurora">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item">
+            <div>
+                <a href="https://isaacmonheit.github.io/AudioVisualizer/">
+                    <img src="home_page_images/audiovisualizer.png" alt="AudioVisualizer">
+                </a>
+            </div>
+        </div>
+        <div class="grid-item">
+            <div>
+                <a href="/hecticness/">
+                    <img src="home_page_images/hecticness.png" alt="hecticness">
+                </a>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
+
+<!-- idea: have each sub website play a gif of the actions of that website when you hover over it -->
+
+
+
+<!-- <li><a href="/onepianokey">One Piano Key</a> - Experience the joy of pressing a single piano key.</li>
+<li><a href="https://isaacmonheit-7qlh5.ondigitalocean.app/">Breathe.</a> - Just Breathe.</li>
+<li><a href="/sequencer">Basic Seqeuncer</a> - minimal function, just make beat (WIP)</li>
+<li><a href="/chromesthesia">Chromesthesia</a> - image -> sound (incomplete)</li>
+<li><a href="https://isaacmonheit.github.io/view3d/">view3d</a> - 3d image</li>
+<li><a href="/hecticness/">Hecticness</a> - idk what's happening</li>
+<li><a href="/wave/">wave</a> - the waveeee (incomplete)</li>
+<li><a href="/grassyfield/">Grassy Field</a> - wind and song and beauty (incomplete)</li>
+<li><a href="https://isaacmonheit.github.io/AudioVisualizer/">Audio Visualizer</a> - live audio analysis (doesn't work on computer chrome for some reason)</li>
+<li><a href="/pixelator/">pixelator</a> - give it any image</li>    
+<li><a href="/subdivider/">Subdivider</a> - to help with subdividing odd time signatures (WIP) </li>   
+<li><a href="/burst/">Burst</a> - burst of color</li>   
+<li><a href="/swirl/">swirl</a> - swirl an image (WIP)</li>   
+<li><a href="/ascii/">ascii</a> - text to ascii art (WIP)</li>   
+<li><a href="/Wildflower_Restoration_Project/">Wildflower Restoration Project</a> - artist website</li>
+<li><a href="/cube/">CUBE</a> - interactive cube</li>   
+<li><a href="/holographic_image/">holographic_image</a> - interactive holographic image</li>   
+<li><a href="/pyramid/">PYRAMID</a> - interactive pyramid</li>   
+<li><a href="/aurora/">aurora</a> - goal is to simulate live time</li>    -->
