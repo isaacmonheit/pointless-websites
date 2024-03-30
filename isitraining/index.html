@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Is It Raining?</title>
+<style>
+    body {
+        display: block;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        flex-direction: column;
+
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        padding-top: 33vh;
+    }
+
+    p {
+        font-size: 2rem;
+        clear: both;
+    }
+    /* put weatherResult below the h1 */
+    #weatherResult {
+        font-size: 3rem;
+        clear: both;
+    }
+</style>
+</head>
+<body>
+<h1>Is It Raining?</h1>
+<p id="weatherResult"></p>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                getWeather(position.coords.latitude, position.coords.longitude);
+            }, function(error) {
+                console.error("Error Code = " + error.code + " - " + error.message);
+                document.getElementById('weatherResult').textContent = 'Unable to retrieve your location';
+            });
+        } else {
+            document.getElementById('weatherResult').textContent = 'Geolocation is not supported by your browser';
+        }
+    });
+
+    function getWeather(latitude, longitude) {
+        const apiKey = '7f8e3be0bcfbb2671edf531bb33a6f6a';
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const isRaining = data.weather.some(condition => condition.main === 'Rain');
+            if (isRaining) {
+                document.getElementById('weatherResult').textContent = "YES";
+            } else {
+                document.getElementById('weatherResult').textContent = "NO";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('weatherResult').textContent = 'Error fetching weather data';
+        });
+    }
+</script>
+</body>
+</html>
