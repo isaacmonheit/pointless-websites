@@ -10,7 +10,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #1f1471;
+            background-color: hsl(58, 88%, 93%);
         }
         .header {
             text-align: center;
@@ -26,11 +26,11 @@
             user-select: none;
         }
         p {
-            color: #cacaca;
+            color: #8f8f8f;
             font-size: 1.0em;
             margin-top: 5px;
             margin-bottom: 0px;
-            text-shadow: 2px 2px 4px #000000;
+            text-shadow: 2px 2px 4px #b9b9b9;
             user-select: none;
         }
         .p2 {
@@ -40,38 +40,79 @@
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             padding: 20px;
+            /* background-color: #d77155; This sets the brown background color */
+            /* set background to an image instead of color */
+            background-image: url('home_page_images/corkboard.jpeg');
+            border-radius: 0; /* Optional: if you want the outer edge of the whole grid to be square as well */
+            margin: auto; /* This centers the grid-container if it's narrower than the full width */
+            max-width: 1200px; /* Optional: if you want to limit the maximum width of the grid */
         }
+
         .grid-item {
-            background-color: #ffffff;
-            border-radius: 22px;
-            padding: 3px;
+            /* background-color: #ffffff; */
+            border-radius: 0;
+            /* padding: 3px; */
             transition: transform 0.2s ease;
             user-select: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .grid-item .static-image, 
+        .grid-item .hover-gif {
+            width: 100%;
+            height: auto;
+            display: block; /* Ensure images are not inline */
+        }
+
+        .grid-item .hover-gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0; /* Hide the GIF initially */
+        }
+
+        .grid-item:hover .static-image {
+            opacity: 0; /* Hide the static image */
+        }
+
+        .grid-item:hover .hover-gif {
+            opacity: 1; /* Show the GIF */
         }
 
         .grid-item:hover {
-            /* transform: translateY(-5px); */
-            /* make the item larger */
-            transform: scale(1.05);
-            /* border-color: #aaa; */
+            transform: scale(1.05); /* Scale up the item slightly */
+        }
+
+        .grid-item:hover .thumbtack {
+            display: none; /* Hide the thumbtack when hovering */
         }
 
         .grid-item img {
             /* stretch img to make it so it fits the whole box */
             width: 100%;
             height: fit-content;
-            border-radius: 20px;
+            /* border-radius: 20px; */
             display: block;
             object-fit: cover;
         }
-        /* .grid-item a {
-            color: #333;
-            text-decoration: none;
-            font-weight: bold;
-        } */
+
+        .thumbtack {
+            width: 40px; /* Size of the thumbtack image */
+            height: 40px; /* Size of the thumbtack image */
+            background-image: url('home_page_images/tack2.webp'); /* Path to your thumbtack image */
+            background-size: cover;
+            position: absolute;
+            top: 10px; /* Adjust so the thumbtack appears to be pinning the top edge of the item */
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.3s ease; /* Smooth transition for the thumbtack */
+            z-index: 10; /* Ensure it's above the images */
+        }
+        
         @media (max-width: 900px) {
             .grid-container {
                 grid-template-columns: repeat(2, 1fr);
@@ -87,6 +128,7 @@
                 padding: 30px; /* Adjust header padding for smaller screens */
             }
         }
+        
     </style>
 </head>
 <body>
@@ -101,34 +143,48 @@
 
     <div class="grid-container">
         <div class="grid-item">
-            <div>
-                <a href="/onepianokey/">
-                    <img src="home_page_images/one_piano_key.png" alt="One Piano Key">
-                </a>
-            </div>
+            <a href="/onepianokey/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/one_piano_key.png" alt="One Piano Key">
+                <img class="hover-gif" src="home_page_videos/pianokey.gif" alt="One Piano Key Gif">
+            </a>
         </div>
         <div class="grid-item">
+            <a href="/sequencer/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/sequencer.png" alt="Seqeuncer">
+                <img class="hover-gif" src="home_page_videos/sequencer.gif" alt="Seqeuncer Gif">
+            </a>
+        </div>
+        <div class="grid-item">
+            <a href="https://isaacmonheit-7qlh5.ondigitalocean.app/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/breathe.png" alt="Breathe.">
+                <img class="hover-gif" src="home_page_videos/infinitybreathe.gif" alt="Breathe. Gif">
+            </a>
+        </div>
+        <!-- <div class="grid-item">
             <div>
                 <a href="https://isaacmonheit-7qlh5.ondigitalocean.app/">
                     <img src="home_page_images/breathe.png" alt="Breathe.">
                 </a>
             </div>
         </div>
-        <div class="grid-item" style="background-color: black; padding: 5px">
+        <div class="grid-item">
             <div>
                 <a href="/sequencer/">
                     <img src="home_page_images/sequencer.png" alt="Seqeuncer">
                 </a>
             </div>
         </div>
-        <div class="grid-item" style="background-color: black; padding: 5px">
+        <div class="grid-item">
             <div>
                 <a href="https://isaacmonheit.github.io/view3d/">
                     <img src="home_page_images/view3d.png" alt="view3d">
                 </a>
             </div>
         </div>
-        <div class="grid-item" style="background-color: black; padding: 5px">
+        <div class="grid-item">
             <div>
                 <a href="/pixelator/">
                     <img src="home_page_images/pixelator.png" alt="pixelator">
@@ -176,7 +232,7 @@
                     <img src="home_page_images/itisraining.png" alt="isitraining">
                 </a>
             </div>
-        </div>
+        </div> -->
     </div>
 
 </body>
