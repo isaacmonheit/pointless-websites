@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Temp Patterns</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100vw;
+            margin: -10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map', {
+            center: [0, 0],
+            zoom: 2,
+            minZoom: 2, // Set minimum zoom level here to prevent zooming out too far
+            maxZoom: 10 // You can adjust this to set the maximum zoom-in level
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Add OpenWeatherMap layer
+        var tempLayer = L.tileLayer('https://{s}.tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid={apiKey}', {
+            apiKey: '7f8e3be0bcfbb2671edf531bb33a6f6a', // Replace 'YOUR_API_KEY' with your actual OpenWeatherMap API key
+            maxZoom: 19,
+            attribution: 'Weather data © OpenWeatherMap'
+        }).addTo(map);
+    </script>
+</body>
+</html>

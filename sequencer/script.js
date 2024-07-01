@@ -104,18 +104,6 @@ registerSound('m-8', 'mushrooms_8.mp3');
 
 
 
-// loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {synth1Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {synth2Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_1.wav', buffer => {synth_moon_1Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_2.wav', buffer => {synth_moon_2Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_3.wav', buffer => {synth_moon_3Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_4.wav', buffer => {synth_moon_4Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_1.mp3', buffer => {grass_1Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_2.mp3', buffer => {grass_2Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_3.mp3', buffer => {grass_3Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_4.mp3', buffer => {grass_4Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_5.mp3', buffer => {grass_5Buffer = buffer;});
-
 document.addEventListener("DOMContentLoaded", function() {
     const sounds = [
         {name: "hat_1", file: "hat1.wav"},
@@ -268,20 +256,6 @@ function registerSound(soundName, soundFile) {
 }
 
 
-
-// let synth1Buffer, synth2Buffer, synth_moon_1Buffer, synth_moon_2Buffer, synth_moon_3Buffer, synth_moon_4Buffer, grass_1Buffer, grass_2Buffer, grass_3Buffer, grass_4Buffer, grass_5Buffer;
-// loadAudioFile('/sequencer/sounds/synth1.wav', buffer => {synth1Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth2.wav', buffer => {synth2Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_1.wav', buffer => {synth_moon_1Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_2.wav', buffer => {synth_moon_2Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_3.wav', buffer => {synth_moon_3Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/synth_moon_4.wav', buffer => {synth_moon_4Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_1.mp3', buffer => {grass_1Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_2.mp3', buffer => {grass_2Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_3.mp3', buffer => {grass_3Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_4.mp3', buffer => {grass_4Buffer = buffer;});
-// loadAudioFile('/sequencer/sounds/grass_5.mp3', buffer => {grass_5Buffer = buffer;});
-
 let currentlyPlayingSynth = null;
 
 function playSound(buffer, gainNode = null) {
@@ -353,12 +327,6 @@ bpmInput.addEventListener('change', () => {
 });
 
 sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);
-
-
-
-
-
-
 
 
 
@@ -466,15 +434,23 @@ document.addEventListener('mousemove', (e) => {
 ////////////////////////// RUNNING SEQUENCER /////////////////////////////////
 
 let hasPlaySectionChanged = false;
-let beatChange = 16
+let beatChange = 16;
 const beatChangeSelect = document.getElementById('beatChangeSelect');
 beatChangeSelect.addEventListener('change', (event) => {
     beatChange = parseInt(event.target.value, 10);
 });
 
 let baseDuration = (60 / bpm) * 1000 / 4;  // The base duration for one 16th note
+let isRecording = false;
+let recordOneCycle = false;
+let previousTime = performance.now(); // Initialize previousTime with the current time
 
 function runSequencer() {
+    const currentTime = performance.now(); // Get the current time
+    const timeDifference = currentTime - previousTime; // Calculate the time difference
+    console.log(`Time difference between beats: ${timeDifference.toFixed(2)} ms`);
+    previousTime = currentTime; // Update previousTime for the next beat
+
     const allCircles = document.querySelectorAll('.circle');
     allCircles.forEach(circle => circle.classList.remove('current'));
 
@@ -488,10 +464,15 @@ function runSequencer() {
         }
     });
 
-    // const specialBeatBox = document.querySelector(`#specialBeatSection .specialBeatBox[data-beat="${currentBeat}"]`);
-    // if (specialBeatBox && specialBeatBox.dataset.sound) {
-    //     playInstrument(specialBeatBox.dataset.sound);
-    // }
+    // Check recording status and record 1 loop
+    if (currentBeat === 0 && isRecording && !recordOneCycle) {
+        startRecording();
+        recordOneCycle = true;
+    } else if (currentBeat === 0 && isRecording && recordOneCycle) {
+        stopRecording();
+        isRecording = false;
+        recordOneCycle = false;
+    }
 
     // Move to the next beat
     currentBeat = (currentBeat + 1) % totalBeats;
@@ -512,12 +493,11 @@ function runSequencer() {
         const playSectionBoxes = playSection.querySelectorAll('.soundBox');
         if (playSectionBoxes.length) {
             const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
-            const currentBuffer = window[currentSound + 'Buffer'];
-            if (currentBuffer) {
+            if (soundBuffers[currentSound]) {
                 if (currentlyPlayingSynth) {
                     currentlyPlayingSynth.stop();
                 }
-                currentlyPlayingSynth = playSound(currentBuffer);
+                currentlyPlayingSynth = playSound(soundBuffers[currentSound]);
             }
 
             currentSoundIndex = (currentSoundIndex + 1) % playSectionBoxes.length;
@@ -526,6 +506,8 @@ function runSequencer() {
         hasPlaySectionChanged = false; // Reset the flag
     }
 }
+
+
 
 
 
@@ -547,25 +529,6 @@ swingSlider.addEventListener('input', (event) => {
 
 /////////////////////////// DRAG AND DROP MECHANIC /////////////////////////////
 
-//special beatsss
-// document.querySelectorAll('.specialBeatBox').forEach(box => {
-//     box.addEventListener('dragover', dragOver);
-//     box.addEventListener('drop', drop);
-// });
-
-// function dragOver(e) {
-//     e.preventDefault();  // Allow dropping
-// }
-
-// // Make each sound box draggable
-// document.querySelectorAll('.soundBox').forEach(box => {
-//     box.draggable = true;
-
-//     box.addEventListener('dragstart', e => {
-//         e.dataTransfer.setData('text/plain', box.dataset.sound);
-//         e.dataTransfer.setData('source', 'soundBox'); // Indicate the source of the drag
-//     });
-// });
 
 
 
@@ -662,3 +625,131 @@ function rearrangeBoxes(box, clientX, isClone = false) {
         });
     }
 }
+
+
+
+/////////////////////////// RECORDING THE SEQUENCE /////////////////////////////
+/////////////////////////// RECORDING THE SEQUENCE /////////////////////////////
+/////////////////////////// RECORDING THE SEQUENCE /////////////////////////////
+/////////////////////////// RECORDING THE SEQUENCE /////////////////////////////
+/////////////////////////// RECORDING THE SEQUENCE /////////////////////////////
+
+let recorderNode = null;
+
+function startRecording() {
+    recorderNode.port.postMessage('start');
+}
+
+function stopRecording() {
+    recorderNode.port.postMessage('stop');
+}
+
+async function setupAudioWorklet() {
+    await audioContext.audioWorklet.addModule('recorder-worklet.js');
+    recorderNode = new AudioWorkletNode(audioContext, 'recorder-processor');
+
+    recorderNode.port.onmessage = (event) => {
+        const recordedChunks = event.data;
+        if (recordedChunks.length === 0) {
+            console.error('No recorded data received.');
+            return;
+        }
+
+        const bufferLength = recordedChunks.reduce((total, chunk) => total + chunk.length, 0);
+        const audioBuffer = audioContext.createBuffer(1, bufferLength, audioContext.sampleRate);
+        const bufferData = audioBuffer.getChannelData(0);
+
+        let offset = 0;
+        recordedChunks.forEach((chunk) => {
+            bufferData.set(chunk, offset);
+            offset += chunk.length;
+        });
+
+        const wav = audioBufferToWav(audioBuffer);
+        const blob = new Blob([wav], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'loop.wav';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+    hihatGain.connect(recorderNode);
+    percGain.connect(recorderNode);
+    snareGain.connect(recorderNode);
+    kickGain.connect(recorderNode);
+    recorderNode.connect(audioContext.destination);
+
+    return recorderNode;
+}
+
+document.getElementById('downloadButton').addEventListener('click', async () => {
+    recorderNode = await setupAudioWorklet();
+    isRecording = true;
+});
+
+
+function audioBufferToWav(buffer) {
+    const numOfChannels = buffer.numberOfChannels;
+    const length = buffer.length * numOfChannels * 2 + 44;
+    const bufferData = new ArrayBuffer(length);
+    const view = new DataView(bufferData);
+    const channels = [];
+    let sample;
+    let offset = 0;
+    let pos = 0;
+
+    // write WAV header
+    setUint32(0x46464952); // "RIFF"
+    setUint32(length - 8); // file length - 8
+    setUint32(0x45564157); // "WAVE"
+
+    // write format chunk
+    setUint32(0x20746d66); // "fmt " chunk
+    setUint32(16); // length = 16
+    setUint16(1); // PCM (uncompressed)
+    setUint16(numOfChannels);
+    setUint32(buffer.sampleRate);
+    setUint32(buffer.sampleRate * 2 * numOfChannels); // avg. bytes/sec
+    setUint16(numOfChannels * 2); // block-align
+    setUint16(16); // 16-bit (hardcoded in this demo)
+
+    // write data chunk
+    setUint32(0x61746164); // "data" - chunk
+    setUint32(length - pos - 4); // chunk length
+
+    // write interleaved data
+    for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numOfChannels; channel++) {
+            sample = buffer.getChannelData(channel)[i] * 0x7fff; // convert to 16-bit PCM
+            if (sample < 0) {
+                sample = Math.max(sample, -0x8000);
+            } else {
+                sample = Math.min(sample, 0x7fff);
+            }
+            view.setInt16(pos, sample, true);
+            pos += 2;
+        }
+    }
+
+    function setUint16(data) {
+        view.setUint16(pos, data, true);
+        pos += 2;
+    }
+
+    function setUint32(data) {
+        view.setUint32(pos, data, true);
+        pos += 4;
+    }
+
+    return bufferData;
+}
+
+hihatGain.connect(audioContext.destination);
+percGain.connect(audioContext.destination);
+snareGain.connect(audioContext.destination);
+kickGain.connect(audioContext.destination);
+
