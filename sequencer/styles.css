@@ -120,8 +120,8 @@ body {
 
 #numBeatsContainer {
     position: absolute;
-    left: 10px; /* adjust as necessary */
-    top: 130px; /* this positions the dropdown just below the volume sliders */
+    left: 30px; /* adjust as necessary */
+    top: 11px; /* this positions the dropdown just below the volume sliders */
 }
 
 #muteButton {

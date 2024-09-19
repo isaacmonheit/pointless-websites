@@ -167,11 +167,14 @@ numBeatsSelect.addEventListener('change', (event) => {
         activeStates.push(circle.classList.contains('active'));
     });
 
-    clearInterval(sequencerInterval);
     totalBeats = parseInt(event.target.value, 10);
     clearSequencerGrid();
     generateBeats();
-    sequencerInterval = setInterval(runSequencer, (60 / bpm) * 1000 / 4);
+
+    previousTime = performance.now();  // Reset the previous time for accurate scheduling
+    nextExpectedTime = previousTime + baseDuration;  // Reset the expected time for the next beat
+
+    requestAnimationFrame(runSequencer);  // Restart the sequencer
 });
 
 
@@ -311,10 +314,14 @@ let sequencerInterval = null;
 //start open for now
 bpmPopup.style.display = 'block';
 tip.style.display = 'block';
+beatChangeContainer.style.display = 'none';
+numBeatsContainer.style.display = 'block';
 
 menuIcon.addEventListener('click', () => {
     bpmPopup.style.display = bpmPopup.style.display === 'none' ? 'block' : 'none';
     tip.style.display = tip.style.display === 'none' ? 'block' : 'none';
+    // beatChangeContainer.style.display = beatChangeContainer.style.display === 'none' ? 'block' : 'none';
+    numBeatsContainer.style.display = numBeatsContainer.style.display === 'none' ? 'block' : 'none';
 });
 
 bpmInput.addEventListener('change', () => {
@@ -434,7 +441,7 @@ document.addEventListener('mousemove', (e) => {
 ////////////////////////// RUNNING SEQUENCER /////////////////////////////////
 
 let hasPlaySectionChanged = false;
-let beatChange = 16;
+let beatChange = 16
 const beatChangeSelect = document.getElementById('beatChangeSelect');
 beatChangeSelect.addEventListener('change', (event) => {
     beatChange = parseInt(event.target.value, 10);
@@ -445,67 +452,70 @@ let isRecording = false;
 let recordOneCycle = false;
 let previousTime = performance.now(); // Initialize previousTime with the current time
 
+let lastFrameTime = performance.now();
+let bpmInterval = (60 / bpm) * 1000 / 4; // Interval per beat
+
+let nextExpectedTime = previousTime + bpmInterval;
+
 function runSequencer() {
-    const currentTime = performance.now(); // Get the current time
-    const timeDifference = currentTime - previousTime; // Calculate the time difference
-    console.log(`Time difference between beats: ${timeDifference.toFixed(2)} ms`);
-    previousTime = currentTime; // Update previousTime for the next beat
+    let currentTime = performance.now();
+    let timeDifference = currentTime - previousTime;
 
-    const allCircles = document.querySelectorAll('.circle');
-    allCircles.forEach(circle => circle.classList.remove('current'));
+    if (currentTime >= nextExpectedTime) {
+        previousTime = currentTime;
+        nextExpectedTime += bpmInterval;
 
-    // Get circles for the current beat considering totalBeats
-    const currentBeatCircles = document.querySelectorAll(`.circle:nth-child(${totalBeats}n+${currentBeat+1})`);
+        console.log(`Time difference between beats: ${timeDifference.toFixed(2)} ms`);
 
-    currentBeatCircles.forEach(circle => {
-        circle.classList.add('current');
-        if (circle.classList.contains('active')) {
-            playInstrument(circle.classList[1]);  // The second class is the instrument name
+        const allCircles = document.querySelectorAll('.circle');
+        allCircles.forEach(circle => circle.classList.remove('current'));
+
+        // Get circles for the current beat considering totalBeats
+        const currentBeatCircles = document.querySelectorAll(`.circle:nth-child(${totalBeats}n+${currentBeat+1})`);
+
+        currentBeatCircles.forEach(circle => {
+            circle.classList.add('current');
+            if (circle.classList.contains('active')) {
+                playInstrument(circle.classList[1]);  // The second class is the instrument name
+            }
+        });
+
+        // Check recording status and record 1 loop
+        if (currentBeat === 0 && isRecording && !recordOneCycle) {
+            startRecording();
+            recordOneCycle = true;
+        } else if (currentBeat === 0 && isRecording && recordOneCycle) {
+            stopRecording();
+            isRecording = false;
+            recordOneCycle = false;
         }
-    });
 
-    // Check recording status and record 1 loop
-    if (currentBeat === 0 && isRecording && !recordOneCycle) {
-        startRecording();
-        recordOneCycle = true;
-    } else if (currentBeat === 0 && isRecording && recordOneCycle) {
-        stopRecording();
-        isRecording = false;
-        recordOneCycle = false;
-    }
+        // Move to the next beat
+        currentBeat = (currentBeat + 1) % totalBeats;
 
-    // Move to the next beat
-    currentBeat = (currentBeat + 1) % totalBeats;
-
-    let nextIntervalDuration;
-    if (currentBeat % 2 === 1) {
-        // For the "on-beat", use the base duration minus some fraction of the swing value
-        nextIntervalDuration = baseDuration + (baseDuration * 0.5 * swingValue);
-    } else {
-        // For the "off-beat", use the base duration plus some fraction of the swing value
-        nextIntervalDuration = baseDuration - (baseDuration * 0.5 * swingValue);
-    }
-
-    clearInterval(sequencerInterval);  // Clear the previous interval
-    sequencerInterval = setInterval(runSequencer, nextIntervalDuration);  // Set the new interval
-
-    if (currentBeat % (Math.min(beatChange, totalBeats)) === 1 || beatChange === 1 || hasPlaySectionChanged) {
-        const playSectionBoxes = playSection.querySelectorAll('.soundBox');
-        if (playSectionBoxes.length) {
-            const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
-            if (soundBuffers[currentSound]) {
-                if (currentlyPlayingSynth) {
-                    currentlyPlayingSynth.stop();
+        if (currentBeat % (Math.min(beatChange, totalBeats)) === 1 || beatChange === 1 || hasPlaySectionChanged) {
+            const playSectionBoxes = playSection.querySelectorAll('.soundBox');
+            if (playSectionBoxes.length) {
+                const currentSound = playSectionBoxes[currentSoundIndex].dataset.sound;
+                if (soundBuffers[currentSound]) {
+                    if (currentlyPlayingSynth) {
+                        currentlyPlayingSynth.stop();
+                    }
+                    currentlyPlayingSynth = playSound(soundBuffers[currentSound]);
                 }
-                currentlyPlayingSynth = playSound(soundBuffers[currentSound]);
+
+                currentSoundIndex = (currentSoundIndex + 1) % playSectionBoxes.length;
             }
 
-            currentSoundIndex = (currentSoundIndex + 1) % playSectionBoxes.length;
+            hasPlaySectionChanged = false; // Reset the flag
         }
-
-        hasPlaySectionChanged = false; // Reset the flag
     }
+
+    requestAnimationFrame(runSequencer);
 }
+
+// Start the sequencer
+requestAnimationFrame(runSequencer);
 
 
 
