@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Is It Windy?</title>
+<style>
+    body {
+        display: block;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        flex-direction: column;
+
+    }
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        padding-top: 33vh;
+        user-select: none;
+    }
+
+    p {
+        font-size: 2rem;
+        clear: both;
+        user-select: none;
+    }
+
+    #weatherResult {
+        font-size: 3rem;
+        clear: both;
+    }
+
+    #windDetails {
+        font-size: 1.8rem;
+        margin: 1rem 0;
+    }
+
+    #locationInfo {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        background-color: #f1f1f1;
+        padding: 1rem;
+        border-radius: 5px;
+        font-size: 1.2rem;
+        text-align: right;
+    }
+</style>
+</head>
+<body>
+<h1>Is It Windy?</h1>
+<p id="weatherResult" class="loading">Checking wind conditions...</p>
+<p id="windDetails"></p>
+<div id="locationInfo">Getting location...</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                getWindData(position.coords.latitude, position.coords.longitude);
+                getLocationInfo(position.coords.latitude, position.coords.longitude);
+            }, function(error) {
+                console.error("Error Code = " + error.code + " - " + error.message);
+                document.getElementById('weatherResult').textContent = 'Unable to retrieve your location';
+                document.getElementById('weatherResult').className = 'error';
+            });
+        } else {
+            document.getElementById('weatherResult').textContent = 'Geolocation is not supported by your browser';
+            document.getElementById('weatherResult').className = 'error';
+        }
+    });
+
+    function getWindData(latitude, longitude) {
+        const apiKey = '7f8e3be0bcfbb2671edf531bb33a6f6a';
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('OpenWeatherMap API response:', data);
+            
+            const windSpeed = data.wind.speed; // m/s
+            const windDirection = data.wind.deg; // degrees
+            const windSpeedKmh = (windSpeed * 3.6).toFixed(1); // convert to km/h
+            const windSpeedMph = (windSpeed * 2.237).toFixed(1); // convert to mph
+            
+            console.log(`Wind speed: ${windSpeed} m/s (${windSpeedKmh} km/h)`);
+            console.log(`Wind direction: ${windDirection}°`);
+            
+            // Get wind direction as compass direction
+            const getWindDirection = (degrees) => {
+                const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+                return directions[Math.round(degrees / 22.5) % 16];
+            };
+
+            // Determine if it's windy (you can adjust this threshold)
+            const windyThreshold = 5; // m/s (about 18 km/h or 11 mph)
+            const isWindy = windSpeed >= windyThreshold;
+            
+            const weatherResult = document.getElementById('weatherResult');
+            const windDetails = document.getElementById('windDetails');
+            
+            if (isWindy) {
+                weatherResult.textContent = "YES";
+            } else {
+                weatherResult.textContent = "NO";
+            }
+            
+            weatherResult.className = '';
+            
+            windDetails.innerHTML = `
+                Wind Speed: ${windSpeedKmh} km/h (${windSpeedMph} mph)<br>
+                Direction: ${getWindDirection(windDirection)} (${windDirection}°)
+            `;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('weatherResult').textContent = 'Error fetching wind data';
+            document.getElementById('weatherResult').className = 'error';
+        });
+    }
+
+    function getLocationInfo(latitude, longitude) {
+        const apiKey = '7f8e3be0bcfbb2671edf531bb33a6f6a';
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
+
+        fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const city = data.name;
+            const weather = data.weather[0].description;
+            const locationInfo = `
+                Location: ${latitude.toFixed(2)}, ${longitude.toFixed(2)}<br>
+                City: ${city}<br>
+                Weather: ${weather}
+            `;
+            document.getElementById('locationInfo').innerHTML = locationInfo;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('locationInfo').textContent = 'Error fetching location data';
+        });
+    }
+</script>
+</body>
+</html>
