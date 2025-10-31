@@ -1,52 +1,110 @@
 body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden; /* Prevent scrolling */
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    align-items: center; /* Center horizontally */
-    background-color: #f0f0f0;
-  }
-  
-  .upload-container {
-    text-align: center;
-    margin-bottom: 20px; /* Space between the upload area and the canvas */
-  }
-  
-  #imageUpload, #uploadButton {
-    margin-top: 10px;
-  }
-  
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+.upload-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#imageUpload, #uploadButton {
+  margin-top: 10px;
+}
+
+#controls {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 0 0 8px 0;
+  z-index: 10;
+}
+
+.control-group {
+  margin-bottom: 8px;
+}
+
+.control-group label {
+  display: inline-block;
+  min-width: 100px;
+  font-size: 14px;
+}
+
+.control-group input[type="range"] {
+  width: 150px;
+}
+
+.control-group input[type="number"] {
+  width: 80px;
+}
+
+.button-group {
+  display: flex;
+  gap: 5px;
+}
+
+#canvasContainer {
+  width: 95vw;
+  height: 75vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 200px;
+}
+
+canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+button {
+  margin-top: 10px;
+  padding: 5px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: white;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #f5f5f5;
+}
+
+button:active {
+  background-color: #e0e0e0;
+}
+
+button.active {
+  background-color: #d0d0d0;
+  border-color: #b0b0b0;
+}
+
+button.active:hover {
+  background-color: #c5c5c5;
+}
+
+@media (max-width: 600px) {
   #canvasContainer {
-    width: 95vw; /* 95% of the viewport width */
-    height: 75vh; /* 80% of the viewport height */
-    display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    height: 60vh;
+    margin-left: 0;
   }
-  
-  canvas {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Maintain the aspect ratio */
-    image-rendering: pixelated; /* Keeps pixels sharp when scaled */
-    /* border: 1px solid black; Optional: adds a border around the canvas */
+
+  #controls {
+    position: relative;
+    width: 100%;
+    border-radius: 0;
   }
-  
-  /* Responsive adjustments */
-  @media (max-width: 600px) {
-    #canvasContainer {
-      height: 60vh; /* Less height on smaller screens */
-    }
-  }
-  
-  /* Add any additional styles for inputs and buttons */
-  
-  button {
-    margin-top: 10px;
-    padding: 5px 15px;
-    font-size: 16px;
-    cursor: pointer;
-  }
+}
   
