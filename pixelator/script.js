@@ -13,8 +13,9 @@ const SHIFT_SPEED_OFFSET = 5200;
 // ============================================================================
 
 let pixelationValue = 10;
-let mixRatioValue = 0.5;
+let saturationValue = 0.5;
 let brightnessValue = 128;
+let contrastValue = 1.0;
 let currentSeed = 0;
 let useFixedSeed = false;
 let currentImageSrc = null;
@@ -74,13 +75,14 @@ function debounce(func, delay) {
 // ============================================================================
 
 /**
- * Generates a subdued color based on seed and index
+ * Generates a color based on seed and index with saturation control
  * @param {number} seed - The seed value for color generation
  * @param {number} index - The index in the palette
  * @returns {Array<number>} RGB color array
  */
 function generateSubduedColor(seed, index) {
-  const mixRatio = mixRatioValue;
+  // Invert saturation: high saturation = more color, low saturation = more grey
+  const mixRatio = 1 - saturationValue;
   const baseSeed = seed;
   const rnd1 = seededRandom(baseSeed + index);
   const rnd2 = seededRandom(baseSeed + index + 256);
@@ -149,7 +151,12 @@ function replaceColors(imageData) {
   // Process pixels in batches for better performance
   for (let i = 0; i < length; i += 4) {
     // Calculate brightness and use direct lookup (O(1) instead of O(256))
-    const brightness = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+    let brightness = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+
+    // Apply contrast adjustment
+    brightness = ((brightness - 128) * contrastValue) + 128;
+    brightness = Math.max(0, Math.min(255, Math.floor(brightness)));
+
     const newColor = lookupTable[brightness];
 
     data[i] = newColor[0];
@@ -237,6 +244,17 @@ function processImage(imgSrc) {
  * Applies exponentialize effect (blur and re-process)
  */
 function exponentializeImage() {
+  const applyBtn = document.getElementById('applyBtn');
+
+  // If Apply is not active, automatically activate it
+  if (!applyBtn.classList.contains('active')) {
+    if (currentImageSrc) {
+      processImage(currentImageSrc);
+      applyBtn.classList.add('active');
+      applyBtn.textContent = 'Reset';
+    }
+  }
+
   const canvas = document.getElementById('canvas');
   offScreenCanvas.width = canvas.width;
   offScreenCanvas.height = canvas.height;
@@ -247,6 +265,7 @@ function exponentializeImage() {
   // Reset pixelation and update slider
   pixelationValue = 0;
   document.getElementById('pixelationRange').value = pixelationValue;
+  document.getElementById('pixelationValue').value = pixelationValue;
 
   // Apply blur effect
   offScreenCtx.filter = `blur(${DEFAULT_BLUR_VALUE}px)`;
@@ -288,16 +307,28 @@ function shiftImage() {
  */
 function toggleShift() {
   const shiftBtn = document.getElementById('shiftBtn');
+  const applyBtn = document.getElementById('applyBtn');
 
   if (isShifting) {
     clearInterval(shiftInterval);
     isShifting = false;
     shiftBtn.classList.remove('active');
+    shiftBtn.textContent = 'Shift';
   } else {
+    // If Apply is not active, automatically activate it
+    if (!applyBtn.classList.contains('active')) {
+      if (currentImageSrc) {
+        processImage(currentImageSrc);
+        applyBtn.classList.add('active');
+        applyBtn.textContent = 'Reset';
+      }
+    }
+
     const shiftSpeed = SHIFT_SPEED_OFFSET - document.getElementById('shiftSpeedSlider').value;
     shiftInterval = setInterval(shiftImage, shiftSpeed);
     isShifting = true;
     shiftBtn.classList.add('active');
+    shiftBtn.textContent = 'Stop';
   }
 }
 
@@ -313,8 +344,15 @@ function resetImage() {
   if (isShifting) {
     clearInterval(shiftInterval);
     isShifting = false;
-    document.getElementById('shiftBtn').classList.remove('active');
+    const shiftBtn = document.getElementById('shiftBtn');
+    shiftBtn.classList.remove('active');
+    shiftBtn.textContent = 'Shift';
   }
+
+  // Reset Apply button state
+  const applyBtn = document.getElementById('applyBtn');
+  applyBtn.classList.remove('active');
+  applyBtn.textContent = 'Apply';
 
   // Clear the pixelated intermediate since we're resetting
   pixelatedIntermediate = null;
@@ -373,6 +411,10 @@ document.getElementById('imageUpload').addEventListener('change', function(event
 });
 
 // Pixelation slider
+document.getElementById('pixelationRange').addEventListener('input', function(event) {
+  document.getElementById('pixelationValue').value = event.target.value;
+});
+
 document.getElementById('pixelationRange').addEventListener('change', function(event) {
   pixelationValue = parseInt(event.target.value);
 
@@ -425,9 +467,13 @@ document.getElementById('pixelationRange').addEventListener('change', function(e
   }
 });
 
-// Mix ratio slider (grey-ness)
-document.getElementById('mixRatioRange').addEventListener('change', function(event) {
-  mixRatioValue = parseFloat(event.target.value);
+// Saturation slider
+document.getElementById('saturationRange').addEventListener('input', function(event) {
+  document.getElementById('saturationValue').value = parseFloat(event.target.value).toFixed(2);
+});
+
+document.getElementById('saturationRange').addEventListener('change', function(event) {
+  saturationValue = parseFloat(event.target.value);
 
   // If shifting is active or we have a pixelated intermediate, immediately apply the change
   if (pixelatedIntermediate) {
@@ -436,8 +482,26 @@ document.getElementById('mixRatioRange').addEventListener('change', function(eve
 });
 
 // Brightness slider
+document.getElementById('brightnessRange').addEventListener('input', function(event) {
+  document.getElementById('brightnessValue').value = event.target.value;
+});
+
 document.getElementById('brightnessRange').addEventListener('change', function(event) {
   brightnessValue = parseInt(event.target.value);
+
+  // If shifting is active or we have a pixelated intermediate, immediately apply the change
+  if (pixelatedIntermediate) {
+    shiftImage();
+  }
+});
+
+// Contrast slider
+document.getElementById('contrastRange').addEventListener('input', function(event) {
+  document.getElementById('contrastValue').value = parseFloat(event.target.value).toFixed(2);
+});
+
+document.getElementById('contrastRange').addEventListener('change', function(event) {
+  contrastValue = parseFloat(event.target.value);
 
   // If shifting is active or we have a pixelated intermediate, immediately apply the change
   if (pixelatedIntermediate) {
@@ -455,6 +519,18 @@ document.getElementById('seedInput').addEventListener('change', function(event) 
   }
 });
 
+// Randomize seed button
+document.getElementById('randomizeSeedBtn').addEventListener('click', function() {
+  const newSeed = generateRandomSeed();
+  currentSeed = newSeed;
+  document.getElementById('seedInput').value = newSeed;
+
+  // If shifting is active or we have a pixelated intermediate, immediately apply the change
+  if (pixelatedIntermediate) {
+    shiftImage();
+  }
+});
+
 // Fixed seed checkbox
 document.getElementById('useFixedSeed').addEventListener('change', function(event) {
   useFixedSeed = event.target.checked;
@@ -465,10 +541,22 @@ document.getElementById('useFixedSeed').addEventListener('change', function(even
   }
 });
 
-// Apply button - processes the image with current settings
+// Apply/Reset button - processes the image or resets it
 document.getElementById('applyBtn').addEventListener('click', function() {
-  if (currentImageSrc) {
-    processImage(currentImageSrc);
+  const applyBtn = document.getElementById('applyBtn');
+
+  if (applyBtn.classList.contains('active')) {
+    // Reset the image
+    resetImage();
+    applyBtn.classList.remove('active');
+    applyBtn.textContent = 'Apply';
+  } else {
+    // Apply the effects
+    if (currentImageSrc) {
+      processImage(currentImageSrc);
+      applyBtn.classList.add('active');
+      applyBtn.textContent = 'Reset';
+    }
   }
 });
 
@@ -480,15 +568,14 @@ document.getElementById('shiftBtn').addEventListener('click', toggleShift);
 
 // Shift speed slider
 document.getElementById('shiftSpeedSlider').addEventListener('input', function() {
+  document.getElementById('shiftSpeedValue').value = this.value;
+
   if (isShifting) {
     clearInterval(shiftInterval);
     const shiftSpeed = SHIFT_SPEED_OFFSET - document.getElementById('shiftSpeedSlider').value;
     shiftInterval = setInterval(shiftImage, shiftSpeed);
   }
 });
-
-// Reset button
-document.getElementById('resetBtn').addEventListener('click', resetImage);
 
 // Download button
 document.getElementById('downloadBtn').addEventListener('click', function() {
