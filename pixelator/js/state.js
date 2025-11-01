@@ -3,9 +3,8 @@
 // ============================================================================
 
 let pixelationValue = 10;
-let saturationValue = 0.5;
+let mixRatioValue = 0.5;
 let brightnessValue = 128;
-let contrastValue = 1.0;
 let currentSeed = 0;
 let useFixedSeed = false;
 let currentImageSrc = null;

@@ -3,28 +3,22 @@
 // ============================================================================
 
 /**
- * Pixelation effect
+ * Pixelation effect (matches original algorithm)
  */
-function pixelateImage(context) {
+function pixelateImage(context, image) {
   if (pixelationValue <= 1) return;
 
-  const canvas = context.canvas;
-  const scaledWidth = Math.floor(canvas.width / pixelationValue);
-  const scaledHeight = Math.floor(canvas.height / pixelationValue);
+  const scaledWidth = image.width / pixelationValue;
+  const scaledHeight = image.height / pixelationValue;
 
+  // Draw the scaled-down image
+  context.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+
+  // Now scale the image back up to its original size, causing pixelation
+  context.mozImageSmoothingEnabled = false;
+  context.webkitImageSmoothingEnabled = false;
   context.imageSmoothingEnabled = false;
-
-  context.drawImage(
-    canvas,
-    0, 0, canvas.width, canvas.height,
-    0, 0, scaledWidth, scaledHeight
-  );
-
-  context.drawImage(
-    canvas,
-    0, 0, scaledWidth, scaledHeight,
-    0, 0, canvas.width, canvas.height
-  );
+  context.drawImage(context.canvas, 0, 0, scaledWidth, scaledHeight, 0, 0, context.canvas.width, context.canvas.height);
 }
 
 /**
@@ -52,7 +46,7 @@ function processImage(imgSrc) {
     ctx.drawImage(tempCanvas, 0, 0);
 
     // Pixelate
-    pixelateImage(ctx);
+    pixelateImage(ctx, img);
 
     // Store intermediate (pre-color replace)
     pixelatedIntermediate = ctx.getImageData(0, 0, canvas.width, canvas.height);

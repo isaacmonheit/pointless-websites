@@ -156,7 +156,7 @@ document.getElementById('pixelationRange').addEventListener('change', function (
       canvas.height = tempCanvas.height;
       ctx.drawImage(tempCanvas, 0, 0);
 
-      pixelateImage(ctx);
+      pixelateImage(ctx, originalImg);
 
       pixelatedIntermediate = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -173,19 +173,19 @@ document.getElementById('pixelationRange').addEventListener('change', function (
   }
 });
 
-// Saturation slider
+// Mix ratio slider (grayness)
 document
-  .getElementById('saturationRange')
+  .getElementById('mixRatioRange')
   .addEventListener('input', function (event) {
-    document.getElementById('saturationValue').value = parseFloat(
+    document.getElementById('mixRatioValue').value = parseFloat(
       event.target.value
     ).toFixed(2);
   });
 
 document
-  .getElementById('saturationRange')
+  .getElementById('mixRatioRange')
   .addEventListener('change', function (event) {
-    saturationValue = parseFloat(event.target.value);
+    mixRatioValue = parseFloat(event.target.value);
     if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
     if (pixelatedIntermediate) shiftImage();
   });
@@ -201,23 +201,6 @@ document
   .getElementById('brightnessRange')
   .addEventListener('change', function (event) {
     brightnessValue = parseInt(event.target.value, 10);
-    if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
-    if (pixelatedIntermediate) shiftImage();
-  });
-
-// Contrast slider
-document
-  .getElementById('contrastRange')
-  .addEventListener('input', function (event) {
-    document.getElementById('contrastValue').value = parseFloat(
-      event.target.value
-    ).toFixed(2);
-  });
-
-document
-  .getElementById('contrastRange')
-  .addEventListener('change', function (event) {
-    contrastValue = parseFloat(event.target.value);
     if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
     if (pixelatedIntermediate) shiftImage();
   });

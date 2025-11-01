@@ -1,5 +1,6 @@
 // ============================================================================
 // OPTIMIZED COLOR GENERATION WITH PRECOMPUTED LUT
+// (Matches original algorithm exactly, but pre-computes the closest matches)
 // ============================================================================
 
 // Cache for the precomputed lookup table
@@ -7,87 +8,43 @@ let cachedLUT = null;
 let cachedParams = null;
 
 /**
- * Generates a color based on seed and index with saturation control
- */
-function generateSubduedColor(seed, index) {
-  const mixRatio = 1 - saturationValue;
-  const baseSeed = seed;
-  const rnd1 = seededRandom(baseSeed + index);
-  const rnd2 = seededRandom(baseSeed + index + 256);
-  const rnd3 = seededRandom(baseSeed + index + 512);
-
-  return [
-    Math.floor(rnd1 * 256 * (1 - mixRatio) + brightnessValue * mixRatio),
-    Math.floor(rnd2 * 256 * (1 - mixRatio) + brightnessValue * mixRatio),
-    Math.floor(rnd3 * 256 * (1 - mixRatio) + brightnessValue * mixRatio)
-  ];
-}
-
-/**
- * Generates a random color palette with brightness lookup table
- */
-function getRandomPalette() {
-  let seed = useFixedSeed ? currentSeed : generateRandomSeed();
-
-  const colors = [];
-  for (let i = 0; i < PALETTE_SIZE; i++) {
-    colors.push(generateSubduedColor(seed, i));
-  }
-
-  if (!useFixedSeed) {
-    currentSeed = seed;
-    const seedInput = document.getElementById('seedInput');
-    if (seedInput) seedInput.value = currentSeed;
-  }
-
-  const colorsByBrightness = colors
-    .map((color) => ({
-      color,
-      brightness: (color[0] + color[1] + color[2]) / 3
-    }))
-    .sort((a, b) => a.brightness - b.brightness);
-
-  const lookupTable = new Array(256);
-  let colorIndex = 0;
-
-  for (let brightness = 0; brightness < 256; brightness++) {
-    while (
-      colorIndex < colorsByBrightness.length - 1 &&
-      Math.abs(colorsByBrightness[colorIndex + 1].brightness - brightness) <
-        Math.abs(colorsByBrightness[colorIndex].brightness - brightness)
-    ) {
-      colorIndex++;
-    }
-    lookupTable[brightness] = colorsByBrightness[colorIndex].color;
-  }
-
-  return lookupTable;
-}
-
-/**
- * Precomputes a FULL LUT: luma[0-255] → (contrast/brightness applied) → RGB palette
- * This eliminates per-pixel contrast/brightness calculations
+ * Precomputes a FULL LUT that matches the original matchToPalette algorithm
+ * For each possible brightness 0-255, pre-compute which palette color is closest
  */
 function precomputeFullLUT() {
   // Check if we can reuse cached LUT
-  const params = `${currentSeed}_${saturationValue}_${brightnessValue}_${contrastValue}`;
+  const params = `${currentSeed}_${mixRatioValue}_${brightnessValue}`;
   if (cachedLUT && cachedParams === params) {
     return cachedLUT;
   }
 
-  // Get base palette (256 colors indexed by brightness)
-  const basePalette = getRandomPalette();
+  // Generate palette (same as original - unsorted array of 256 colors)
+  const palette = getRandomPalette();
 
-  // Precompute full LUT: input brightness → contrast/brightness adjusted → final RGB
+  // Pre-compute palette brightnesses once
+  const paletteBrightnesses = new Float32Array(256);
+  for (let i = 0; i < 256; i++) {
+    paletteBrightnesses[i] = (palette[i][0] + palette[i][1] + palette[i][2]) / 3;
+  }
+
+  // Precompute full LUT: for each input brightness, find closest palette color
   const fullLUT = new Uint8ClampedArray(256 * 3); // 256 entries × 3 channels
 
   for (let inputBrightness = 0; inputBrightness < 256; inputBrightness++) {
-    // Apply contrast and brightness adjustment
-    let adjustedBrightness = ((inputBrightness - 128) * contrastValue + 128) | 0;
-    adjustedBrightness = Math.max(0, Math.min(255, adjustedBrightness));
+    // Find closest match (same logic as matchToPalette, but pre-computed)
+    let closestIndex = 0;
+    let smallestDifference = Math.abs(paletteBrightnesses[0] - inputBrightness);
 
-    // Lookup final color from palette
-    const color = basePalette[adjustedBrightness];
+    for (let j = 1; j < 256; j++) {
+      const difference = Math.abs(paletteBrightnesses[j] - inputBrightness);
+      if (difference < smallestDifference) {
+        smallestDifference = difference;
+        closestIndex = j;
+      }
+    }
+
+    // Store the closest color
+    const color = palette[closestIndex];
     const idx = inputBrightness * 3;
     fullLUT[idx] = color[0];
     fullLUT[idx + 1] = color[1];

@@ -52,7 +52,6 @@ class WebGLRenderer {
       uniform sampler2D u_palette;
       uniform vec2 u_resolution;
       uniform float u_pixelation;
-      uniform float u_contrast;
 
       varying vec2 v_texCoord;
 
@@ -70,10 +69,6 @@ class WebGLRenderer {
 
         // Calculate luma (brightness)
         float luma = (color.r + color.g + color.b) / 3.0;
-
-        // Apply contrast
-        luma = (luma - 0.5) * u_contrast + 0.5;
-        luma = clamp(luma, 0.0, 1.0);
 
         // Lookup color from 1D palette texture
         vec4 paletteColor = texture2D(u_palette, vec2(luma, 0.5));
@@ -160,7 +155,7 @@ class WebGLRenderer {
    * Update palette texture from current settings
    */
   updatePalette() {
-    const params = `${currentSeed}_${saturationValue}_${brightnessValue}_${contrastValue}`;
+    const params = `${currentSeed}_${mixRatioValue}_${brightnessValue}`;
     if (this.lastPaletteParams === params) {
       return; // Already up to date
     }
@@ -220,7 +215,6 @@ class WebGLRenderer {
     // Set uniforms
     gl.uniform2f(gl.getUniformLocation(this.program, 'u_resolution'), width, height);
     gl.uniform1f(gl.getUniformLocation(this.program, 'u_pixelation'), pixelationValue);
-    gl.uniform1f(gl.getUniformLocation(this.program, 'u_contrast'), contrastValue);
 
     // Bind textures
     gl.activeTexture(gl.TEXTURE0);
