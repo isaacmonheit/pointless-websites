@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' blob: data:;">
   <title>Pixelator</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="/pixelator/favicon_io/favicon-32x32.png">
@@ -15,7 +16,6 @@
   <div class="container">
     <header class="header">
       <h1>Big Pixelator</h1>
-      <p class="subtitle">Transform your images with pixelation and color effects</p>
     </header>
 
     <div class="main-content">
@@ -23,8 +23,8 @@
         <div class="control-section">
           <h3>Upload Image</h3>
           <label for="imageUpload" class="file-upload-label">
-            <span>Choose Image</span>
-            <input type="file" id="imageUpload" accept="image/*">
+            <span>Choose Image or Video</span>
+            <input type="file" id="imageUpload" accept="image/*,video/*">
           </label>
         </div>
 
@@ -75,14 +75,26 @@
           </div>
         </div>
 
-        <div class="control-section">
+        <div class="control-section" id="effectsSection" style="display: none;">
           <h3>Effects</h3>
-          <div class="action-buttons">
+          <div class="action-buttons" id="imageButtons" style="display: none;">
             <button id="applyBtn" class="btn btn-secondary">Apply</button>
             <button id="exponentializeBtn" class="btn btn-secondary">Exponentialize</button>
             <button id="shiftBtn" class="btn btn-secondary">Shift</button>
           </div>
-          <div class="control-group">
+          <div class="action-buttons" id="videoButtons" style="display: none;">
+            <button id="previewFramesBtn" class="btn btn-secondary">Preview First 15 Frames</button>
+            <button id="processVideoBtn" class="btn btn-primary">Process Video</button>
+            <div id="videoProgress" style="display: none; margin-top: 12px;">
+              <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 4px;">
+                <span id="progressText">Processing: 0%</span>
+              </div>
+              <div style="width: 100%; background: var(--border); border-radius: 4px; overflow: hidden;">
+                <div id="progressBar" style="width: 0%; height: 8px; background: var(--primary-color); transition: width 0.3s;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="control-group" id="shiftSpeedControl" style="display: none;">
             <label for="shiftSpeedSlider">
               <span>Shift Speed</span>
               <output id="shiftSpeedValue">4200</output>
@@ -91,7 +103,7 @@
           </div>
         </div>
 
-        <div class="control-section">
+        <div class="control-section" id="downloadSection" style="display: none;">
           <button id="downloadBtn" class="btn btn-download">Download Image</button>
         </div>
       </aside>
@@ -99,19 +111,52 @@
       <main class="canvas-area">
         <div id="canvasContainer">
           <canvas id="canvas"></canvas>
+          <video id="videoPlayer" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;" controls loop></video>
           <div class="empty-state">
             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <circle cx="8.5" cy="8.5" r="1.5"></circle>
               <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
-            <p>Upload an image to get started</p>
+            <p>Upload an image or video to get started</p>
+          </div>
+          <div id="conversionOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 20px;">
+            <div style="color: white; font-size: 1.5rem; font-weight: 600;">
+              <span id="conversionText">Converting video...</span>
+            </div>
+            <div style="width: 60%; max-width: 400px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; overflow: hidden; height: 12px;">
+              <div id="conversionBar" style="width: 0%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">
+              <span id="conversionPercent">0%</span>
+            </div>
           </div>
         </div>
       </main>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="ffmpeg/ffmpeg.min.js"></script>
+  <script src="ffmpeg/index.min.js"></script>
+  <!-- Pixelator modules (order matters for dependencies) -->
+  <script src="js/constants.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+
+  <!-- Core rendering (optimized versions override original) -->
+  <script src="js/color.js"></script>
+  <script src="js/color-optimized.js"></script>
+  <script src="js/webgl-renderer.js"></script>
+
+  <!-- Processing modules -->
+  <script src="js/image.js"></script>
+  <script src="js/image-optimized.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/ffmpeg.js"></script>
+  <script src="js/video.js"></script>
+  <script src="js/video-optimized.js"></script>
+
+  <!-- UI (must be last) -->
+  <script src="js/ui.js"></script>
 </body>
 </html>

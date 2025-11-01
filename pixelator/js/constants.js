@@ -1,0 +1,9 @@
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MAX_CANVAS_DIMENSION = 800;
+const PALETTE_SIZE = 256;
+const DEBOUNCE_DELAY = 1;
+const DEFAULT_BLUR_VALUE = 5;
+const SHIFT_SPEED_OFFSET = 5200;
