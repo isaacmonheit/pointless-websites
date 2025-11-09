@@ -19,9 +19,9 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
       }
 
       if (!canvasSized) {
-        const scale = Math.min(MAX_CANVAS_DIMENSION / video.videoWidth, MAX_CANVAS_DIMENSION / video.videoHeight);
-        canvas.width = Math.round(video.videoWidth * scale / 2) * 2;
-        canvas.height = Math.round(video.videoHeight * scale / 2) * 2;
+        const { width, height } = calculateTargetDimensions(video.videoWidth, video.videoHeight);
+        canvas.width = width;
+        canvas.height = height;
         canvasSized = true;
       }
 

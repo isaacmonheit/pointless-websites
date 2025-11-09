@@ -44,6 +44,74 @@ function cleanupVideoUrls() {
   }
 }
 
+/**
+ * Get UI elements for mode switching
+ */
+function getUIElements() {
+  return {
+    effectsSection: document.getElementById('effectsSection'),
+    downloadSection: document.getElementById('downloadSection'),
+    imageButtons: document.getElementById('imageButtons'),
+    videoButtons: document.getElementById('videoButtons'),
+    shiftSpeedControl: document.getElementById('shiftSpeedControl'),
+    canvas: document.getElementById('canvas'),
+    videoPlayer: document.getElementById('videoPlayer'),
+    downloadBtn: document.getElementById('downloadBtn')
+  };
+}
+
+/**
+ * Setup UI for video mode
+ */
+function setupVideoModeUI(videoSrc) {
+  const ui = getUIElements();
+
+  videoFrames = [];
+  processedVideoBlob = null;
+
+  ui.effectsSection.style.display = 'flex';
+  ui.downloadSection.style.display = 'block';
+  ui.imageButtons.style.display = 'none';
+  ui.videoButtons.style.display = 'flex';
+  ui.shiftSpeedControl.style.display = 'none';
+  ui.downloadBtn.textContent = 'Download Video';
+
+  ui.videoPlayer.src = videoSrc;
+  ui.videoPlayer.load();
+
+  ui.videoPlayer.addEventListener('loadedmetadata', function scaleVideo() {
+    const { width, height } = calculateTargetDimensions(ui.videoPlayer.videoWidth, ui.videoPlayer.videoHeight);
+    ui.videoPlayer.style.width = width + 'px';
+    ui.videoPlayer.style.height = height + 'px';
+    ui.videoPlayer.removeEventListener('loadedmetadata', scaleVideo);
+  });
+
+  ui.canvas.style.display = 'none';
+  ui.videoPlayer.style.display = 'block';
+}
+
+/**
+ * Setup UI for image mode
+ */
+function setupImageModeUI(imageSrc) {
+  const ui = getUIElements();
+
+  originalImageSrc = imageSrc;
+  currentImageSrc = imageSrc;
+
+  ui.effectsSection.style.display = 'flex';
+  ui.downloadSection.style.display = 'block';
+  ui.imageButtons.style.display = 'flex';
+  ui.videoButtons.style.display = 'none';
+  ui.shiftSpeedControl.style.display = 'flex';
+  ui.downloadBtn.textContent = 'Download Image';
+
+  ui.canvas.style.display = 'block';
+  ui.videoPlayer.style.display = 'none';
+
+  displayOriginalImage(currentImageSrc);
+}
+
 async function handleFileUpload(file, clearFileInput = null) {
   if (!file) return;
 
@@ -109,13 +177,6 @@ async function handleFileUpload(file, clearFileInput = null) {
 
   const reader = new FileReader();
   reader.onload = function (e) {
-    const effectsSection = document.getElementById('effectsSection');
-    const downloadSection = document.getElementById('downloadSection');
-    const imageButtons = document.getElementById('imageButtons');
-    const videoButtons = document.getElementById('videoButtons');
-    const shiftSpeedControl = document.getElementById('shiftSpeedControl');
-    const canvasEl = document.getElementById('canvas');
-    const videoPlayer = document.getElementById('videoPlayer');
     const emptyState = document.querySelector('.empty-state');
 
     resetButton('applyBtn', 'Apply');
@@ -124,59 +185,14 @@ async function handleFileUpload(file, clearFileInput = null) {
     if (emptyState) emptyState.style.display = 'none';
 
     if (isVideoMode) {
-      videoFrames = [];
-      processedVideoBlob = null;
-
+      // Clean up old video before setting new one
       cleanupVideoUrls();
 
       // Use blob URL for converted videos to save memory
       currentVideoSrc = wasConverted ? URL.createObjectURL(file) : e.target.result;
-
-      effectsSection.style.display = 'flex';
-      downloadSection.style.display = 'block';
-
-      imageButtons.style.display = 'none';
-      videoButtons.style.display = 'flex';
-      shiftSpeedControl.style.display = 'none';
-      document.getElementById('downloadBtn').textContent = 'Download Video';
-
-      // Display the uploaded video immediately
-      videoPlayer.src = currentVideoSrc;
-      videoPlayer.load();
-
-      // Scale video player to match processed video dimensions
-      videoPlayer.addEventListener('loadedmetadata', function scaleVideo() {
-        const maxDim = MAX_CANVAS_DIMENSION;
-        const scale = Math.min(maxDim / videoPlayer.videoWidth, maxDim / videoPlayer.videoHeight);
-        const targetWidth = Math.round(videoPlayer.videoWidth * scale / 2) * 2;
-        const targetHeight = Math.round(videoPlayer.videoHeight * scale / 2) * 2;
-
-        videoPlayer.style.width = targetWidth + 'px';
-        videoPlayer.style.height = targetHeight + 'px';
-
-        // Remove listener after first use
-        videoPlayer.removeEventListener('loadedmetadata', scaleVideo);
-      });
-
-      canvasEl.style.display = 'none';
-      videoPlayer.style.display = 'block';
+      setupVideoModeUI(currentVideoSrc);
     } else {
-      // Image mode
-      originalImageSrc = e.target.result;
-      currentImageSrc = originalImageSrc;
-
-      effectsSection.style.display = 'flex';
-      downloadSection.style.display = 'block';
-
-      imageButtons.style.display = 'flex';
-      videoButtons.style.display = 'none';
-      shiftSpeedControl.style.display = 'flex';
-      document.getElementById('downloadBtn').textContent = 'Download Image';
-
-      canvasEl.style.display = 'block';
-      videoPlayer.style.display = 'none';
-
-      displayOriginalImage(currentImageSrc);
+      setupImageModeUI(e.target.result);
     }
   };
 
@@ -251,19 +267,14 @@ document.getElementById('pixelationRange').addEventListener('change', function (
 
     const originalImg = new Image();
     originalImg.onload = function () {
-      tempCanvas.width =
-        originalImg.width >= originalImg.height
-          ? MAX_CANVAS_DIMENSION
-          : Math.floor((originalImg.width / originalImg.height) * MAX_CANVAS_DIMENSION);
-      tempCanvas.height =
-        originalImg.height >= originalImg.width
-          ? MAX_CANVAS_DIMENSION
-          : Math.floor((originalImg.height / originalImg.width) * MAX_CANVAS_DIMENSION);
+      const { width, height } = calculateTargetDimensions(originalImg.width, originalImg.height);
 
-      tempCtx.drawImage(originalImg, 0, 0, tempCanvas.width, tempCanvas.height);
+      tempCanvas.width = width;
+      tempCanvas.height = height;
+      tempCtx.drawImage(originalImg, 0, 0, width, height);
 
-      canvas.width = tempCanvas.width;
-      canvas.height = tempCanvas.height;
+      canvas.width = width;
+      canvas.height = height;
       ctx.drawImage(tempCanvas, 0, 0);
 
       pixelateImage(ctx, originalImg);
@@ -661,30 +672,16 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   stopAllActivity();
 
   if (isVideoMode) {
-    if (videoDownloadUrl || processedVideoBlob) {
-      const url = videoDownloadUrl || URL.createObjectURL(processedVideoBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'pixelated.webm';
-      document.body.appendChild(a);
-      requestAnimationFrame(() => {
-        a.click();
-        a.remove();
-        if (!videoDownloadUrl) setTimeout(() => URL.revokeObjectURL(url), 30_000);
-      });
+    if (videoDownloadUrl) {
+      downloadFromUrl(videoDownloadUrl, 'pixelated.webm');
+    } else if (processedVideoBlob) {
+      downloadBlob(processedVideoBlob, 'pixelated.webm');
     } else {
       alert('Process the video first.');
     }
   } else {
     if (imageDownloadUrl) {
-      const a = document.createElement('a');
-      a.href = imageDownloadUrl;
-      a.download = 'pixelated.png';
-      document.body.appendChild(a);
-      requestAnimationFrame(() => {
-        a.click();
-        a.remove();
-      });
+      downloadFromUrl(imageDownloadUrl, 'pixelated.png');
     } else {
       const canvas = document.getElementById('canvas');
       if (canvas?.width) {

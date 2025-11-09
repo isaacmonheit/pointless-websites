@@ -1,13 +1,3 @@
-async function initFFmpeg() {
-  if (ffmpegLoaded) return;
-
-  const { FFmpeg } = FFmpegWASM;
-  ffmpeg = new FFmpeg();
-
-  await loadFFmpeg(ffmpeg);
-  ffmpegLoaded = true;
-}
-
 function needsConversion(file) {
   const fileName = file.name.toLowerCase();
   const fileType = (file.type || '').toLowerCase();

@@ -33,17 +33,6 @@ function getReusableBuffer(width, height) {
 }
 
 /**
- * Calculate target dimensions with even-number scaling
- */
-function calculateTargetDimensions(width, height) {
-  const scale = Math.min(MAX_CANVAS_DIMENSION / width, MAX_CANVAS_DIMENSION / height);
-  return {
-    width: Math.round(width * scale / 2) * 2,
-    height: Math.round(height * scale / 2) * 2
-  };
-}
-
-/**
  * Setup canvas with bitmap
  */
 async function setupCanvasWithBitmap(imgSrc) {

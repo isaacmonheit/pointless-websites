@@ -49,19 +49,16 @@ function cleanupIntermediateFrames() {
   }
 }
 
-function revokeUrl(url) {
-  if (url) URL.revokeObjectURL(url);
-}
-
 window.addEventListener('beforeunload', () => {
-  revokeUrl(imageDownloadUrl);
-  revokeUrl(videoDownloadUrl);
+  if (imageDownloadUrl) URL.revokeObjectURL(imageDownloadUrl);
+  if (videoDownloadUrl) URL.revokeObjectURL(videoDownloadUrl);
+
   const vp = document.getElementById('videoPlayer');
-  if (vp && vp.dataset && vp.dataset.objUrl) {
+  if (vp?.dataset?.objUrl) {
     URL.revokeObjectURL(vp.dataset.objUrl);
   }
-  // Clean up currentVideoSrc if it's a blob URL
-  if (currentVideoSrc && currentVideoSrc.startsWith('blob:')) {
+
+  if (currentVideoSrc?.startsWith('blob:')) {
     URL.revokeObjectURL(currentVideoSrc);
   }
 });
@@ -72,6 +69,11 @@ function downloadBlob(blob, filename) {
     return;
   }
   const url = URL.createObjectURL(blob);
+  downloadFromUrl(url, filename);
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
+function downloadFromUrl(url, filename) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
@@ -79,7 +81,6 @@ function downloadBlob(blob, filename) {
   requestAnimationFrame(() => {
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30_000);
   });
 }
 
@@ -120,4 +121,12 @@ async function fetchBytesFromSrc(src) {
   const res = await fetch(src);
   if (!res.ok) throw new Error(`Failed to fetch source media: ${res.status}`);
   return new Uint8Array(await res.arrayBuffer());
+}
+
+function calculateTargetDimensions(width, height) {
+  const scale = Math.min(MAX_CANVAS_DIMENSION / width, MAX_CANVAS_DIMENSION / height);
+  return {
+    width: Math.round(width * scale / 2) * 2,
+    height: Math.round(height * scale / 2) * 2
+  };
 }
