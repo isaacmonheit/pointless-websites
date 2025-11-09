@@ -1,7 +1,3 @@
-// ============================================================================
-// UTILITIES
-// ============================================================================
-
 function stopAllActivity() {
   if (isShifting) {
     clearInterval(shiftInterval);
@@ -70,9 +66,8 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-// Reuse a helper to download without blocking
 function downloadBlob(blob, filename) {
-  if (!blob || !blob.size) {
+  if (!blob?.size) {
     alert('Nothing to download yet.');
     return;
   }
@@ -88,19 +83,11 @@ function downloadBlob(blob, filename) {
   });
 }
 
-/**
- * Simple seedable random number generator
- * @param {number} seed
- * @returns {number} [0,1)
- */
 function seededRandom(seed) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
 }
 
-/**
- * Deterministic per-frame seed from pixels
- */
 function generateDeterministicSeed(previousSeed, frameData) {
   if (useFixedSeed) return currentSeed;
   const data = frameData.data;
@@ -120,26 +107,17 @@ function generateRandomSeed() {
 function debounce(func, delay) {
   let debounceTimer;
   return function () {
-    const context = this;
-    const args = arguments;
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+    debounceTimer = setTimeout(() => func.apply(this, arguments), delay);
   };
 }
 
-// ---- Audio mux helpers -----------------------------------------------------
-function arrayBufferFromBlob(blob) {
-  return blob.arrayBuffer();
-}
-
 async function uint8FromBlob(blob) {
-  return new Uint8Array(await arrayBufferFromBlob(blob));
+  return new Uint8Array(await blob.arrayBuffer());
 }
 
-// Fetch bytes from a data: URL, blob: URL, or http(s) URL
 async function fetchBytesFromSrc(src) {
   const res = await fetch(src);
   if (!res.ok) throw new Error(`Failed to fetch source media: ${res.status}`);
-  const buf = await res.arrayBuffer();
-  return new Uint8Array(buf);
+  return new Uint8Array(await res.arrayBuffer());
 }

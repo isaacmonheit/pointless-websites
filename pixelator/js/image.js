@@ -1,10 +1,3 @@
-// ============================================================================
-// IMAGE PROCESSING
-// - createImageBitmap for faster decode/resize
-// - Buffer reuse (minimize getImageData/putImageData calls)
-// ============================================================================
-
-// Reusable ImageData buffer
 let reusableImageData = null;
 
 /**
@@ -40,35 +33,45 @@ function getReusableBuffer(width, height) {
 }
 
 /**
+ * Calculate target dimensions with even-number scaling
+ */
+function calculateTargetDimensions(width, height) {
+  const scale = Math.min(MAX_CANVAS_DIMENSION / width, MAX_CANVAS_DIMENSION / height);
+  return {
+    width: Math.round(width * scale / 2) * 2,
+    height: Math.round(height * scale / 2) * 2
+  };
+}
+
+/**
+ * Setup canvas with bitmap
+ */
+async function setupCanvasWithBitmap(imgSrc) {
+  const blob = await fetch(imgSrc).then(r => r.blob());
+  const bitmap = await loadImageFast(blob);
+  const { width, height } = calculateTargetDimensions(bitmap.width, bitmap.height);
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(bitmap, 0, 0, width, height);
+
+  return { bitmap, ctx, canvas };
+}
+
+/**
  * Process image
  */
 async function processImage(imgSrc) {
   try {
-    // Convert data URL to blob for createImageBitmap
-    const blob = await fetch(imgSrc).then(r => r.blob());
-    const bitmap = await loadImageFast(blob);
+    const { bitmap, ctx, canvas } = await setupCanvasWithBitmap(imgSrc);
 
-    // Use same scaling logic as videos for consistency
-    const maxDim = MAX_CANVAS_DIMENSION;
-    const scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height);
-    const targetWidth = Math.round(bitmap.width * scale / 2) * 2;
-    const targetHeight = Math.round(bitmap.height * scale / 2) * 2;
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-
-    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
-
-    // Pixelation
     pixelateImage(ctx, bitmap);
     bitmap.close && bitmap.close();
 
-    // Store intermediate
     pixelatedIntermediate = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    // Color replace with LUT
     let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     imageData = replaceColors(imageData);
     ctx.putImageData(imageData, 0, 0);
@@ -81,25 +84,11 @@ async function processImage(imgSrc) {
 }
 
 /**
- * Display original image with createImageBitmap
+ * Display original image
  */
 async function displayOriginalImage(imgSrc) {
   try {
-    const blob = await fetch(imgSrc).then(r => r.blob());
-    const bitmap = await loadImageFast(blob);
-
-    // Use same scaling logic as videos for consistency
-    const maxDim = MAX_CANVAS_DIMENSION;
-    const scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height);
-    const targetWidth = Math.round(bitmap.width * scale / 2) * 2;
-    const targetHeight = Math.round(bitmap.height * scale / 2) * 2;
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-
-    ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+    const { bitmap } = await setupCanvasWithBitmap(imgSrc);
     bitmap.close && bitmap.close();
 
     pixelatedIntermediate = null;

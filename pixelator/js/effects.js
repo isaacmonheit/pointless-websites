@@ -1,20 +1,17 @@
-// ============================================================================
-// SPECIAL EFFECTS
-// ============================================================================
+async function ensureImageProcessed() {
+  const applyBtn = document.getElementById('applyBtn');
+  if (!applyBtn?.classList.contains('active') && currentImageSrc) {
+    await processImage(currentImageSrc);
+    applyBtn.classList.add('active');
+    applyBtn.textContent = 'Reset';
+  }
+}
 
 /**
  * Exponentialize: blur then re-process
  */
 async function exponentializeImage() {
-  const applyBtn = document.getElementById('applyBtn');
-
-  if (!applyBtn.classList.contains('active')) {
-    if (currentImageSrc) {
-      await processImage(currentImageSrc);
-      applyBtn.classList.add('active');
-      applyBtn.textContent = 'Reset';
-    }
-  }
+  await ensureImageProcessed();
 
   const canvas = document.getElementById('canvas');
   offScreenCanvas.width = canvas.width;
@@ -51,29 +48,17 @@ async function exponentializeImage() {
  */
 async function toggleShift() {
   const shiftBtn = document.getElementById('shiftBtn');
-  const applyBtn = document.getElementById('applyBtn');
 
   if (isShifting) {
     clearInterval(shiftInterval);
     isShifting = false;
     shiftBtn.classList.remove('active');
     shiftBtn.textContent = 'Shift';
-
-    // Clean up previous frames when stopping shift
-    if (typeof cleanupIntermediateFrames === 'function') {
-      cleanupIntermediateFrames();
-    }
+    cleanupIntermediateFrames?.();
   } else {
-    if (!applyBtn.classList.contains('active')) {
-      if (currentImageSrc) {
-        await processImage(currentImageSrc);
-        applyBtn.classList.add('active');
-        applyBtn.textContent = 'Reset';
-      }
-    }
+    await ensureImageProcessed();
 
-    const shiftSpeed =
-      SHIFT_SPEED_OFFSET - document.getElementById('shiftSpeedSlider').value;
+    const shiftSpeed = SHIFT_SPEED_OFFSET - document.getElementById('shiftSpeedSlider').value;
     shiftInterval = setInterval(shiftImage, shiftSpeed);
     isShifting = true;
     shiftBtn.classList.add('active');
@@ -88,13 +73,7 @@ async function resetImage() {
   if (!originalImageSrc) return;
 
   stopAllActivity();
-
-  const applyBtn = document.getElementById('applyBtn');
-  applyBtn.classList.remove('active');
-  applyBtn.textContent = 'Apply';
-
   pixelatedIntermediate = null;
-
   currentImageSrc = originalImageSrc;
 
   await displayOriginalImage(currentImageSrc);

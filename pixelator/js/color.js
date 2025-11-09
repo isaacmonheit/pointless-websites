@@ -1,10 +1,3 @@
-// ============================================================================
-// COLOR GENERATION WITH OPTIMIZED LUT
-// ============================================================================
-
-/**
- * Generates a color based on seed and index with mix ratio control
- */
 function generateSubduedColor(seed, index) {
   const mixRatio = mixRatioValue;
   const baseSeed = seed;

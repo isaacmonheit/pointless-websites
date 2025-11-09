@@ -1,11 +1,3 @@
-// ============================================================================
-// VIDEO PROCESSING
-// ============================================================================
-
-/**
- * Extract video frames using simple seeking
- * Extracts at 30fps - simple and reliable
- */
 async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = null) {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
@@ -23,20 +15,16 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
 
     const extractFrame = () => {
       if (typeof cancelVideoProcessing !== 'undefined' && cancelVideoProcessing) {
-        reject(new Error('Cancelled'));
-        return;
+        return reject(new Error('Cancelled'));
       }
 
-      // First frame: set canvas size
       if (!canvasSized) {
-        const maxDim = MAX_CANVAS_DIMENSION;
-        const scale = Math.min(maxDim / video.videoWidth, maxDim / video.videoHeight);
+        const scale = Math.min(MAX_CANVAS_DIMENSION / video.videoWidth, MAX_CANVAS_DIMENSION / video.videoHeight);
         canvas.width = Math.round(video.videoWidth * scale / 2) * 2;
         canvas.height = Math.round(video.videoHeight * scale / 2) * 2;
         canvasSized = true;
       }
 
-      // Capture frame
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -47,11 +35,8 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
         height: canvas.height
       });
 
-      if (progressCallback) {
-        progressCallback((currentTime / video.duration) * 100);
-      }
+      progressCallback?.((currentTime / video.duration) * 100);
 
-      // Next frame
       currentTime += frameInterval;
 
       if ((maxFrames > 0 && frames.length >= maxFrames) || currentTime >= video.duration) {
@@ -64,8 +49,7 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
     video.addEventListener('seeked', extractFrame);
     video.addEventListener('loadedmetadata', () => {
       if (!video.duration || !video.videoWidth) {
-        reject(new Error('Invalid video'));
-        return;
+        return reject(new Error('Invalid video'));
       }
       video.currentTime = 0;
     });
@@ -99,9 +83,6 @@ function processVideoFrame(frameData, width, height, frameSeed) {
   return imageData;
 }
 
-/**
- * Process video frames and encode with FFmpeg
- */
 async function processFullVideo(frameData, progressCallback = null) {
   const frames = frameData.frames || frameData;
   const fps = frameData.fps || 30;
@@ -110,15 +91,8 @@ async function processFullVideo(frameData, progressCallback = null) {
   const ffmpeg = new FFmpeg();
 
   try {
-    // Load FFmpeg
-    const baseURL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
-    await ffmpeg.load({
-      coreURL: baseURL + '/ffmpeg/ffmpeg-core.js',
-      wasmURL: baseURL + '/ffmpeg/ffmpeg-core.wasm',
-      workerURL: baseURL + '/ffmpeg/814.ffmpeg.js'
-    });
+    await loadFFmpeg(ffmpeg);
 
-    // Process frames to RGB buffer
     const width = frames[0].width;
     const height = frames[0].height;
     const bytesPerFrame = width * height * 3;
@@ -132,10 +106,8 @@ async function processFullVideo(frameData, progressCallback = null) {
 
       const f = frames[i];
       frameSeed = generateDeterministicSeed(frameSeed, f.imageData);
-
       const imageData = processVideoFrame(f.imageData, f.width, f.height, frameSeed);
 
-      // Convert RGBA to RGB
       const offset = i * bytesPerFrame;
       const rgba = imageData.data;
       for (let j = 0, k = 0; j < rgba.length; j += 4, k += 3) {
@@ -144,33 +116,18 @@ async function processFullVideo(frameData, progressCallback = null) {
         rawVideoData[offset + k + 2] = rgba[j + 2];
       }
 
-      if (progressCallback) {
-        progressCallback({
-          phase: 'processing',
-          progress: ((i + 1) / frames.length) * 100
-        });
-      }
+      progressCallback?.({ phase: 'processing', progress: ((i + 1) / frames.length) * 100 });
     }
 
-    // Clean up frames
-    frames.forEach(f => { if (f.imageData) f.imageData = null; });
+    frames.forEach(f => f.imageData = null);
     frames.length = 0;
 
-    // Write to FFmpeg
     await ffmpeg.writeFile('input.rgb', rawVideoData);
 
-    // Encode
-    if (progressCallback) {
-      progressCallback({ phase: 'encoding', progress: 0 });
-    }
+    progressCallback?.({ phase: 'encoding', progress: 0 });
 
     const progressHandler = ({ progress }) => {
-      if (progressCallback) {
-        progressCallback({
-          phase: 'encoding',
-          progress: Math.round(progress * 100)
-        });
-      }
+      progressCallback?.({ phase: 'encoding', progress: Math.round(progress * 100) });
     };
     ffmpeg.on('progress', progressHandler);
 

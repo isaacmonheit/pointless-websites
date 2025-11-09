@@ -1,6 +1,48 @@
-// ============================================================================
-// FILE HANDLING
-// ============================================================================
+function resetButton(buttonId, defaultText) {
+  const btn = document.getElementById(buttonId);
+  if (btn) {
+    btn.classList.remove('active');
+    btn.textContent = defaultText;
+  }
+}
+
+/**
+ * Toggle button active state
+ */
+function toggleButton(buttonId, activeText, inactiveText) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return false;
+
+  const isActive = btn.classList.contains('active');
+  if (isActive) {
+    btn.classList.remove('active');
+    btn.textContent = inactiveText;
+  } else {
+    btn.classList.add('active');
+    btn.textContent = activeText;
+  }
+  return !isActive;
+}
+
+/**
+ * Cleanup video URLs
+ */
+function cleanupVideoUrls() {
+  if (videoDownloadUrl) {
+    URL.revokeObjectURL(videoDownloadUrl);
+    videoDownloadUrl = null;
+  }
+
+  const videoPlayer = document.getElementById('videoPlayer');
+  if (videoPlayer?.dataset.objUrl) {
+    URL.revokeObjectURL(videoPlayer.dataset.objUrl);
+    delete videoPlayer.dataset.objUrl;
+  }
+
+  if (currentVideoSrc?.startsWith('blob:')) {
+    URL.revokeObjectURL(currentVideoSrc);
+  }
+}
 
 async function handleFileUpload(file, clearFileInput = null) {
   if (!file) return;
@@ -11,12 +53,8 @@ async function handleFileUpload(file, clearFileInput = null) {
   let wasConverted = false;
 
   if (isVideoMode && needsConversion(file)) {
-    if (
-      !confirm(
-        'This video type needs to be converted to .mp4 or .webm before pixelating!\n\nThe page can automatically convert it in-browser, but it will be SLOW!\n\nContinue?'
-      )
-    ) {
-      if (clearFileInput) clearFileInput();
+    if (!confirm('This video type needs to be converted to .mp4 or .webm before pixelating!\n\nThe page can automatically convert it in-browser, but it will be SLOW!\n\nContinue?')) {
+      clearFileInput?.();
       return;
     }
 
@@ -32,7 +70,6 @@ async function handleFileUpload(file, clearFileInput = null) {
         conversionPercent.textContent = Math.round(percent) + '%';
       });
 
-      // Replace file with converted blob - original is now freed
       file = convertedBlob;
       wasConverted = true;
 
@@ -42,12 +79,8 @@ async function handleFileUpload(file, clearFileInput = null) {
     } catch (error) {
       console.error('Conversion error:', error);
       conversionOverlay.style.display = 'none';
-      alert(
-        'Failed to convert video: ' +
-          error.message +
-          '\n\nPlease try a different video format or convert it manually.'
-      );
-      if (clearFileInput) clearFileInput();
+      alert('Failed to convert video: ' + error.message + '\n\nPlease try a different video format or convert it manually.');
+      clearFileInput?.();
       return;
     }
   }
@@ -63,39 +96,16 @@ async function handleFileUpload(file, clearFileInput = null) {
     const videoPlayer = document.getElementById('videoPlayer');
     const emptyState = document.querySelector('.empty-state');
 
-    // Reset button states
-    const applyBtn = document.getElementById('applyBtn');
-    const shiftBtn = document.getElementById('shiftBtn');
-    if (applyBtn) {
-      applyBtn.classList.remove('active');
-      applyBtn.textContent = 'Apply';
-    }
-    if (shiftBtn) {
-      shiftBtn.classList.remove('active');
-      shiftBtn.textContent = 'Shift';
-    }
+    resetButton('applyBtn', 'Apply');
+    resetButton('shiftBtn', 'Shift');
 
-    // Hide empty state
     if (emptyState) emptyState.style.display = 'none';
 
     if (isVideoMode) {
-      // Video mode
       videoFrames = [];
       processedVideoBlob = null;
 
-      // Reset old video URLs
-      if (videoDownloadUrl) {
-        URL.revokeObjectURL(videoDownloadUrl);
-        videoDownloadUrl = null;
-      }
-      if (videoPlayer.dataset.objUrl) {
-        URL.revokeObjectURL(videoPlayer.dataset.objUrl);
-        delete videoPlayer.dataset.objUrl;
-      }
-      // Revoke old source if it was a blob URL
-      if (currentVideoSrc && currentVideoSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(currentVideoSrc);
-      }
+      cleanupVideoUrls();
 
       // Use blob URL for converted videos to save memory
       currentVideoSrc = wasConverted ? URL.createObjectURL(file) : e.target.result;
@@ -155,11 +165,6 @@ async function handleFileUpload(file, clearFileInput = null) {
   reader.readAsDataURL(file);
 }
 
-// ============================================================================
-// EVENT LISTENERS
-// ============================================================================
-
-// File input change event
 document.getElementById('imageUpload').addEventListener('change', async function (event) {
   if (!(event.target.files && event.target.files[0])) return;
   await handleFileUpload(event.target.files[0], () => {
@@ -312,18 +317,14 @@ document.getElementById('useFixedSeed').addEventListener('change', function (eve
 
 // Apply/Reset button
 document.getElementById('applyBtn').addEventListener('click', async function () {
-  const applyBtn = document.getElementById('applyBtn');
+  const isActive = document.getElementById('applyBtn').classList.contains('active');
 
-  if (applyBtn.classList.contains('active')) {
+  if (isActive) {
     await resetImage();
-    applyBtn.classList.remove('active');
-    applyBtn.textContent = 'Apply';
-  } else {
-    if (currentImageSrc) {
-      await processImage(currentImageSrc);
-      applyBtn.classList.add('active');
-      applyBtn.textContent = 'Reset';
-    }
+    resetButton('applyBtn', 'Apply');
+  } else if (currentImageSrc) {
+    await processImage(currentImageSrc);
+    toggleButton('applyBtn', 'Reset', 'Apply');
   }
 });
 
@@ -349,7 +350,6 @@ document.getElementById('shiftSpeedSlider').addEventListener('input', function (
 document.getElementById('previewFramesBtn').addEventListener('click', async function () {
   if (!currentVideoSrc) return;
 
-  // Pause any currently playing video
   const videoPlayer = document.getElementById('videoPlayer');
   videoPlayer.pause();
 
@@ -358,14 +358,9 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
   if (isPreviewing) {
     clearInterval(previewInterval);
     isPreviewing = false;
-    previewBtn.classList.remove('active');
-    previewBtn.textContent = 'Preview First 15 Frames';
+    resetButton('previewFramesBtn', 'Preview First 15 Frames');
     document.getElementById('canvas').style.display = 'none';
-
-    // Show the video player (processed if available, otherwise original)
-    const videoPlayer = document.getElementById('videoPlayer');
     videoPlayer.style.display = 'block';
-
     return;
   }
 
@@ -536,7 +531,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     }
 
     const videoPlayer = document.getElementById('videoPlayer');
-    if (!processedVideoBlob || !processedVideoBlob.size) {
+    if (!processedVideoBlob?.size) {
       console.error('No processed video blob to play.');
       processBtn.disabled = false;
       processBtn.textContent = originalText;
@@ -547,14 +542,16 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     if (videoPlayer.dataset.objUrl) {
       URL.revokeObjectURL(videoPlayer.dataset.objUrl);
     }
+    if (videoDownloadUrl) {
+      URL.revokeObjectURL(videoDownloadUrl);
+    }
+
     const objUrl = URL.createObjectURL(processedVideoBlob);
     videoPlayer.dataset.objUrl = objUrl;
     videoPlayer.src = objUrl;
     videoPlayer.style.display = 'block';
     document.getElementById('canvas').style.display = 'none';
 
-    // Precompute download URL (reuse same objUrl)
-    if (videoDownloadUrl) URL.revokeObjectURL(videoDownloadUrl);
     videoDownloadUrl = objUrl;
 
     // Show completion status
@@ -642,22 +639,20 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
   stopAllActivity();
 
   if (isVideoMode) {
-    if (videoDownloadUrl) {
+    if (videoDownloadUrl || processedVideoBlob) {
+      const url = videoDownloadUrl || URL.createObjectURL(processedVideoBlob);
       const a = document.createElement('a');
-      a.href = videoDownloadUrl;
+      a.href = url;
       a.download = 'pixelated.webm';
       document.body.appendChild(a);
       requestAnimationFrame(() => {
         a.click();
         a.remove();
+        if (!videoDownloadUrl) setTimeout(() => URL.revokeObjectURL(url), 30_000);
       });
-      return;
+    } else {
+      alert('Process the video first.');
     }
-    if (processedVideoBlob) {
-      downloadBlob(processedVideoBlob, 'pixelated.webm');
-      return;
-    }
-    alert('Process the video first.');
   } else {
     if (imageDownloadUrl) {
       const a = document.createElement('a');
@@ -668,10 +663,11 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
         a.click();
         a.remove();
       });
-      return;
+    } else {
+      const canvas = document.getElementById('canvas');
+      if (canvas?.width) {
+        canvas.toBlob((blob) => downloadBlob(blob, 'pixelated.png'), 'image/png');
+      }
     }
-    const canvas = document.getElementById('canvas');
-    if (!canvas || !canvas.width) return;
-    canvas.toBlob((blob) => downloadBlob(blob, 'pixelated.png'), 'image/png');
   }
 });
