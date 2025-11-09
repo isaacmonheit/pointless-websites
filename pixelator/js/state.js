@@ -22,6 +22,8 @@ let videoFrames = [];
 let previewInterval = null;
 let isPreviewing = false;
 let processedVideoBlob = null;
+let isProcessingVideo = false;
+let cancelVideoProcessing = false;
 
 // FFmpeg state
 let ffmpeg = null;

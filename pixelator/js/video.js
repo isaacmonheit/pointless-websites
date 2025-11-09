@@ -33,8 +33,8 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
 
     const cleanup = () => {
       if (timeoutId) clearTimeout(timeoutId);
-      video.src = '';
-      video.load();
+      video.removeAttribute('src');
+      video.removeEventListener('error', handleError);
     };
 
     const handleError = (e) => {
@@ -80,7 +80,7 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
         return;
       }
 
-      const fps = 30;
+      const fps = 24; // Optimized FPS
       const frameInterval = 1 / fps;
       let currentTime = 0;
 
@@ -283,6 +283,15 @@ async function processFullVideo(frames, progressCallback = null) {
       mediaRecorder.onerror = (e) => {
         console.error('MediaRecorder error:', e);
         cleanup();
+
+        // Clean up intermediate frames on error
+        frames.forEach(frame => {
+          if (frame && frame.imageData) {
+            frame.imageData = null;
+          }
+        });
+        frames.length = 0;
+
         reject(new Error('MediaRecorder error: ' + (e.error?.message || e.message || 'unknown')));
       };
 
@@ -290,6 +299,15 @@ async function processFullVideo(frames, progressCallback = null) {
         const type = supported || 'video/webm';
         const blob = new Blob(chunks, { type });
         cleanup();
+
+        // Clean up intermediate frames
+        frames.forEach(frame => {
+          if (frame && frame.imageData) {
+            frame.imageData = null;
+          }
+        });
+        frames.length = 0;
+
         resolve(blob);
       };
 
@@ -300,7 +318,7 @@ async function processFullVideo(frames, progressCallback = null) {
 
       // Use timestamps if present; otherwise assume constant 30 fps timeline
       const hasTimestamps = frames.every(f => typeof f.timestamp === 'number');
-      const fps = 30;
+      const fps = 24; // Optimized FPS
       const frameInterval = 1 / fps;
       const startTime = performance.now();
 
@@ -364,11 +382,19 @@ async function processFullVideo(frames, progressCallback = null) {
         // Stop and detach audio element
         try {
           audioEl.pause();
-          audioEl.src = '';
+          audioEl.removeAttribute('src');
           audioEl.remove();
         } catch (_) {}
       }
     } catch (err) {
+      // Clean up intermediate frames on error
+      frames.forEach(frame => {
+        if (frame && frame.imageData) {
+          frame.imageData = null;
+        }
+      });
+      frames.length = 0;
+
       reject(err);
     }
   });

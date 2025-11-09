@@ -21,6 +21,36 @@ function stopAllActivity() {
       previewBtn.textContent = 'Preview First 15 Frames';
     }
   }
+
+  // Clean up intermediate frames and data
+  cleanupIntermediateFrames();
+}
+
+function cleanupIntermediateFrames() {
+  // Clear video frames
+  if (videoFrames && videoFrames.length > 0) {
+    videoFrames.forEach(frame => {
+      if (frame && frame.imageData) {
+        frame.imageData = null;
+      }
+    });
+    videoFrames = [];
+  }
+
+  // Clear pixelated intermediate used in shift mode
+  pixelatedIntermediate = null;
+
+  // Clear off-screen canvases
+  if (offScreenCanvas) {
+    offScreenCtx.clearRect(0, 0, offScreenCanvas.width, offScreenCanvas.height);
+    offScreenCanvas.width = 0;
+    offScreenCanvas.height = 0;
+  }
+  if (tempCanvas) {
+    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCanvas.width = 0;
+    tempCanvas.height = 0;
+  }
 }
 
 function revokeUrl(url) {

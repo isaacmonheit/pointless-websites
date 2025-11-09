@@ -1,14 +1,11 @@
 // ============================================================================
-// EVENT LISTENERS
+// FILE HANDLING
 // ============================================================================
 
-document.getElementById('imageUpload').addEventListener('change', async function (event) {
-  if (!(event.target.files && event.target.files[0])) return;
+async function handleFileUpload(file, clearFileInput = null) {
+  if (!file) return;
 
   stopAllActivity();
-
-  let file = event.target.files[0];
-  const reader = new FileReader();
 
   isVideoMode = file.type.startsWith('video/');
 
@@ -18,13 +15,12 @@ document.getElementById('imageUpload').addEventListener('change', async function
         'This video type needs to be converted to .mp4 or .webm before pixelatifying!\n\nThe in-browser conversion code may be slow; converting yourself first may be faster. Continue and convert here?'
       )
     ) {
-      event.target.value = '';
+      if (clearFileInput) clearFileInput();
       return;
     }
 
     const conversionOverlay = document.getElementById('conversionOverlay');
     const conversionText = document.getElementById('conversionText');
-    const conversionBar = document.getElementById('conversionBar');
     const conversionPercent = document.getElementById('conversionPercent');
 
     try {
@@ -32,7 +28,6 @@ document.getElementById('imageUpload').addEventListener('change', async function
 
       const convertedBlob = await convertVideoToWebM(file, (message, percent) => {
         conversionText.textContent = message;
-        conversionBar.style.width = percent + '%';
         conversionPercent.textContent = Math.round(percent) + '%';
       });
 
@@ -53,11 +48,12 @@ document.getElementById('imageUpload').addEventListener('change', async function
           error.message +
           '\n\nPlease try a different video format or convert it manually.'
       );
-      event.target.value = '';
+      if (clearFileInput) clearFileInput();
       return;
     }
   }
 
+  const reader = new FileReader();
   reader.onload = function (e) {
     const effectsSection = document.getElementById('effectsSection');
     const downloadSection = document.getElementById('downloadSection');
@@ -66,6 +62,22 @@ document.getElementById('imageUpload').addEventListener('change', async function
     const shiftSpeedControl = document.getElementById('shiftSpeedControl');
     const canvasEl = document.getElementById('canvas');
     const videoPlayer = document.getElementById('videoPlayer');
+    const emptyState = document.querySelector('.empty-state');
+
+    // Reset button states
+    const applyBtn = document.getElementById('applyBtn');
+    const shiftBtn = document.getElementById('shiftBtn');
+    if (applyBtn) {
+      applyBtn.classList.remove('active');
+      applyBtn.textContent = 'Apply';
+    }
+    if (shiftBtn) {
+      shiftBtn.classList.remove('active');
+      shiftBtn.textContent = 'Shift';
+    }
+
+    // Hide empty state
+    if (emptyState) emptyState.style.display = 'none';
 
     if (isVideoMode) {
       // Video mode
@@ -82,8 +94,6 @@ document.getElementById('imageUpload').addEventListener('change', async function
         URL.revokeObjectURL(videoPlayer.dataset.objUrl);
         delete videoPlayer.dataset.objUrl;
       }
-      videoPlayer.removeAttribute('src');
-      videoPlayer.load();
 
       effectsSection.style.display = 'flex';
       downloadSection.style.display = 'block';
@@ -93,8 +103,11 @@ document.getElementById('imageUpload').addEventListener('change', async function
       shiftSpeedControl.style.display = 'none';
       document.getElementById('downloadBtn').textContent = 'Download Video';
 
+      // Display the uploaded video immediately
+      videoPlayer.src = currentVideoSrc;
+      videoPlayer.load();
       canvasEl.style.display = 'none';
-      videoPlayer.style.display = 'none';
+      videoPlayer.style.display = 'block';
     } else {
       // Image mode
       originalImageSrc = e.target.result;
@@ -125,6 +138,61 @@ document.getElementById('imageUpload').addEventListener('change', async function
   };
 
   reader.readAsDataURL(file);
+}
+
+// ============================================================================
+// EVENT LISTENERS
+// ============================================================================
+
+// File input change event
+document.getElementById('imageUpload').addEventListener('change', async function (event) {
+  if (!(event.target.files && event.target.files[0])) return;
+  await handleFileUpload(event.target.files[0], () => {
+    event.target.value = '';
+  });
+});
+
+// Drag and drop events
+const canvasContainer = document.getElementById('canvasContainer');
+
+canvasContainer.addEventListener('dragover', function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+  canvasContainer.style.outline = '3px dashed var(--primary-color)';
+  canvasContainer.style.outlineOffset = '-10px';
+  canvasContainer.style.backgroundColor = 'rgba(79, 70, 229, 0.05)';
+});
+
+canvasContainer.addEventListener('dragleave', function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+  // Only remove styling if we're leaving the container itself, not a child
+  if (event.target === canvasContainer) {
+    canvasContainer.style.outline = '';
+    canvasContainer.style.outlineOffset = '';
+    canvasContainer.style.backgroundColor = '';
+  }
+});
+
+canvasContainer.addEventListener('drop', async function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  // Remove drag styling
+  canvasContainer.style.outline = '';
+  canvasContainer.style.outlineOffset = '';
+  canvasContainer.style.backgroundColor = '';
+
+  const files = event.dataTransfer.files;
+  if (files && files[0]) {
+    const file = files[0];
+    // Check if it's an image or video
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+      await handleFileUpload(file);
+    } else {
+      alert('Please drop an image or video file.');
+    }
+  }
 });
 
 // Pixelation slider
@@ -271,6 +339,10 @@ document.getElementById('shiftSpeedSlider').addEventListener('input', function (
 document.getElementById('previewFramesBtn').addEventListener('click', async function () {
   if (!currentVideoSrc) return;
 
+  // Pause any currently playing video
+  const videoPlayer = document.getElementById('videoPlayer');
+  videoPlayer.pause();
+
   const previewBtn = document.getElementById('previewFramesBtn');
 
   if (isPreviewing) {
@@ -287,9 +359,10 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
 
   try {
     if (videoFrames.length === 0) {
-      videoFrames = await extractVideoFrames(currentVideoSrc, 15, (progress) => {
+      const result = await extractVideoFrames(currentVideoSrc, 15, (progress) => {
         previewBtn.textContent = `Extracting: ${Math.floor(progress)}%`;
       });
+      videoFrames = result.frames || result; // Handle both old and new format
     }
 
     if (videoFrames.length === 0) {
@@ -344,60 +417,121 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
 document.getElementById('processVideoBtn').addEventListener('click', async function () {
   if (!currentVideoSrc) return;
 
+  const processBtn = document.getElementById('processVideoBtn');
+
+  // If already processing, cancel it
+  if (isProcessingVideo) {
+    cancelVideoProcessing = true;
+    processBtn.textContent = 'Cancelling...';
+    return;
+  }
+
   stopAllActivity();
 
-  const processBtn = document.getElementById('processVideoBtn');
-  const progressDiv = document.getElementById('videoProgress');
-  const progressText = document.getElementById('progressText');
-  const progressBar = document.getElementById('progressBar');
+  const originalText = processBtn.textContent;
+  isProcessingVideo = true;
+  cancelVideoProcessing = false;
 
-  processBtn.disabled = true;
-  progressDiv.style.display = 'block';
+  processBtn.disabled = false; // Keep enabled so user can click to cancel
 
   document.getElementById('canvas').style.display = 'block';
   document.getElementById('videoPlayer').style.display = 'none';
 
   try {
-    progressText.textContent = 'Extracting frames: 0%';
-    const allFrames = await extractVideoFrames(currentVideoSrc, 0, (progress) => {
-      progressText.textContent = `Extracting frames: ${Math.floor(progress)}%`;
-      progressBar.style.width = progress / 2 + '%';
+    setProcessBtnText('Extracting frames: 0%');
+    const frameData = await extractVideoFrames(currentVideoSrc, 0, (progress) => {
+      setProcessBtnText(`Extracting frames: ${Math.floor(progress)}%`);
     });
 
-    if (allFrames.length === 0) {
-      alert('Failed to extract video frames');
-      processBtn.disabled = false;
-      progressDiv.style.display = 'none';
+    // Check if cancelled during frame extraction
+    if (cancelVideoProcessing) {
+      console.log('Video processing cancelled during frame extraction');
+      processBtn.textContent = originalText;
+      isProcessingVideo = false;
+      cancelVideoProcessing = false;
+      isHoveringProcessBtn = false;
       return;
     }
 
-    progressText.textContent = 'Processing video: 0%';
-    // Use optimized version if available
-    if (typeof processFullVideoOptimized !== 'undefined') {
-      processedVideoBlob = await processFullVideoOptimized(allFrames, (progress) => {
-        progressText.textContent = `Processing video: ${Math.floor(progress)}%`;
-        progressBar.style.width = 50 + progress / 2 + '%';
+    const allFrames = frameData.frames || frameData; // Handle both old and new format
+    if (allFrames.length === 0) {
+      alert('Failed to extract video frames');
+      processBtn.disabled = false;
+      processBtn.textContent = originalText;
+      isProcessingVideo = false;
+      return;
+    }
+
+    setProcessBtnText('Processing frames: 0%');
+    // Use ffmpeg-based processing for faster-than-realtime encoding
+    if (typeof processFullVideoWithFFmpeg !== 'undefined') {
+      processedVideoBlob = await processFullVideoWithFFmpeg(frameData, (update) => {
+        // Handle both old (number) and new (object) callback format
+        if (typeof update === 'number') {
+          setProcessBtnText(`Processing video: ${Math.floor(update)}%`);
+        } else {
+          const { phase, progress } = update;
+          const percent = Math.floor(progress);
+          switch (phase) {
+            case 'processing':
+              setProcessBtnText(`Processing frames: ${percent}%`);
+              break;
+            case 'preparing':
+              setProcessBtnText(`Preparing encoder: ${percent}%`);
+              break;
+            case 'encoding':
+              setProcessBtnText(`Encoding video: ${percent}%`);
+              break;
+            default:
+              setProcessBtnText(`Processing: ${percent}%`);
+          }
+        }
       });
     } else {
-      processedVideoBlob = await processFullVideo(allFrames, (progress) => {
-        progressText.textContent = `Processing video: ${Math.floor(progress)}%`;
-        progressBar.style.width = 50 + progress / 2 + '%';
+      processedVideoBlob = await processFullVideo(frameData, (progress) => {
+        setProcessBtnText(`Processing video: ${Math.floor(progress)}%`);
       });
     }
 
-    // ---- NEW: Try to restore the original audio track via ffmpeg.wasm ----
+    // Check if cancelled during video processing
+    if (cancelVideoProcessing) {
+      console.log('Video processing cancelled during encoding');
+      processBtn.textContent = originalText;
+      isProcessingVideo = false;
+      cancelVideoProcessing = false;
+      isHoveringProcessBtn = false;
+      cleanupIntermediateFrames();
+      return;
+    }
+
+    // Give WASM a moment to fully release memory from processing
+    console.log('Waiting for WASM memory cleanup...');
+    await new Promise(resolve => setTimeout(resolve, 1000));  // Increased to 1 second
+    console.log('Proceeding to audio muxing');
+
+    // Mux audio back into the processed video
+    let hasAudio = false;
     try {
+      setProcessBtnText('Muxing audio...');
       const muxed = await muxOriginalAudioIntoProcessed(processedVideoBlob, currentVideoSrc);
       processedVideoBlob = muxed;
+      hasAudio = true;
+      console.log('Audio successfully muxed into processed video');
     } catch (e) {
-      console.warn('Audio mux failed; delivering video-only output. Reason:', e.message || e);
+      const errorMsg = e.message || e;
+      console.warn('Audio mux failed; delivering video-only output. Reason:', errorMsg);
+
+      // Show user-friendly message if it's a size/memory issue
+      if (errorMsg.includes('too large') || errorMsg.includes('index out of bounds')) {
+        console.info('Tip: For videos with audio, try a shorter clip (< 5 seconds) or use a desktop video editor to combine audio manually.');
+      }
     }
 
     const videoPlayer = document.getElementById('videoPlayer');
     if (!processedVideoBlob || !processedVideoBlob.size) {
       console.error('No processed video blob to play.');
       processBtn.disabled = false;
-      progressDiv.style.display = 'none';
+      processBtn.textContent = originalText;
       return;
     }
 
@@ -414,19 +548,76 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     if (videoDownloadUrl) URL.revokeObjectURL(videoDownloadUrl);
     videoDownloadUrl = objUrl;
 
-    progressText.textContent = 'Processing complete!';
-    progressBar.style.width = '100%';
+    // Show completion status
+    const completionText = hasAudio ? 'Complete!' : 'Complete! (no audio)';
+    setProcessBtnText(completionText);
 
+    // Clean up intermediate frames after video processing
+    cleanupIntermediateFrames();
+
+    // Reset processing state
+    isProcessingVideo = false;
+    cancelVideoProcessing = false;
+    isHoveringProcessBtn = false;
+
+    // Keep message longer if there's no audio (so user notices the warning)
+    const messageDisplayTime = hasAudio ? 2000 : 5000;
     setTimeout(() => {
-      progressDiv.style.display = 'none';
-    }, 2000);
+      processBtn.textContent = originalText;
+    }, messageDisplayTime);
 
     processBtn.disabled = false;
   } catch (error) {
     console.error('Processing error:', error);
-    alert('Failed to process video: ' + error.message);
+
+    // Don't show alert if user cancelled
+    if (!cancelVideoProcessing) {
+      alert('Failed to process video: ' + error.message);
+    }
+
     processBtn.disabled = false;
-    progressDiv.style.display = 'none';
+    processBtn.textContent = originalText;
+
+    // Reset processing state
+    isProcessingVideo = false;
+    cancelVideoProcessing = false;
+    isHoveringProcessBtn = false;
+
+    // Clean up intermediate frames on error
+    cleanupIntermediateFrames();
+  }
+});
+
+// Process video button hover behavior - show "Cancel" when hovering during processing
+const processVideoBtn = document.getElementById('processVideoBtn');
+let originalProcessText = '';
+let isHoveringProcessBtn = false;
+
+// Helper function to set process button text, respecting hover state
+function setProcessBtnText(text) {
+  if (isHoveringProcessBtn) {
+    // User is hovering - update the stored text but keep showing "Cancel"
+    originalProcessText = text;
+  } else {
+    // Not hovering - update the button text directly
+    processVideoBtn.textContent = text;
+  }
+}
+
+processVideoBtn.addEventListener('mouseenter', function () {
+  if (isProcessingVideo && !cancelVideoProcessing) {
+    isHoveringProcessBtn = true;
+    originalProcessText = processVideoBtn.textContent;
+    processVideoBtn.textContent = 'Cancel';
+    processVideoBtn.style.cursor = 'pointer';
+  }
+});
+
+processVideoBtn.addEventListener('mouseleave', function () {
+  if (isProcessingVideo && !cancelVideoProcessing && originalProcessText) {
+    isHoveringProcessBtn = false;
+    processVideoBtn.textContent = originalProcessText;
+    originalProcessText = '';
   }
 });
 

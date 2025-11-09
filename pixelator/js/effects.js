@@ -86,6 +86,11 @@ function toggleShift() {
     isShifting = false;
     shiftBtn.classList.remove('active');
     shiftBtn.textContent = 'Shift';
+
+    // Clean up previous frames when stopping shift
+    if (typeof cleanupIntermediateFrames === 'function') {
+      cleanupIntermediateFrames();
+    }
   } else {
     if (!applyBtn.classList.contains('active')) {
       if (currentImageSrc) {

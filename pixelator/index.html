@@ -14,12 +14,9 @@
 </head>
 <body>
   <div class="container">
-    <header class="header">
-      <h1>Big Pixelator</h1>
-    </header>
-
     <div class="main-content">
       <aside class="sidebar">
+        <h1>Big Pixelator</h1>
         <div class="control-section">
           <h3>Upload Image</h3>
           <label for="imageUpload" class="file-upload-label">
@@ -78,21 +75,13 @@
           <div class="action-buttons" id="videoButtons" style="display: none;">
             <button id="previewFramesBtn" class="btn btn-secondary">Preview First 15 Frames</button>
             <button id="processVideoBtn" class="btn btn-primary">Process Video</button>
-            <div id="videoProgress" style="display: none; margin-top: 12px;">
-              <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 4px;">
-                <span id="progressText">Processing: 0%</span>
-              </div>
-              <div style="width: 100%; background: var(--border); border-radius: 4px; overflow: hidden;">
-                <div id="progressBar" style="width: 0%; height: 8px; background: var(--primary-color); transition: width 0.3s;"></div>
-              </div>
-            </div>
           </div>
           <div class="control-group" id="shiftSpeedControl" style="display: none;">
             <label for="shiftSpeedSlider">
               <span>Shift Speed</span>
-              <output id="shiftSpeedValue">4200</output>
+              <output id="shiftSpeedValue">2500</output>
             </label>
-            <input type="range" id="shiftSpeedSlider" min="200" max="5000" value="4200">
+            <input type="range" id="shiftSpeedSlider" min="200" max="5000" value="2500">
           </div>
         </div>
 
@@ -113,14 +102,11 @@
             </svg>
             <p>Upload an image or video to get started</p>
           </div>
-          <div id="conversionOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 20px;">
+          <div id="conversionOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px;">
             <div style="color: white; font-size: 1.5rem; font-weight: 600;">
               <span id="conversionText">Converting video...</span>
             </div>
-            <div style="width: 60%; max-width: 400px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; overflow: hidden; height: 12px;">
-              <div id="conversionBar" style="width: 0%; height: 100%; background: var(--success); transition: width 0.3s;"></div>
-            </div>
-            <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">
+            <div style="color: rgba(255, 255, 255, 0.9); font-size: 1.25rem; font-weight: 500;">
               <span id="conversionPercent">0%</span>
             </div>
           </div>
