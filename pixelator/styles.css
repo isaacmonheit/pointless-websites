@@ -120,7 +120,6 @@ input[type="number"] {
 .checkbox-group label {
   flex-direction: row;
   gap: var(--spacing-sm);
-  cursor: pointer;
 }
 
 .btn-download {
