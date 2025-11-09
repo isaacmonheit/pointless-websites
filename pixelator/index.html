@@ -1,57 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pixelator</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="icon" type="image/png" href="/pixelator/favicon_io/favicon-32x32.png">
-<meta property="og:title" content="Big Pixelator">
-<meta property="og:description" content="House.">
-<meta property="og:image" content="/pixelator/face.png">
-<meta property="og:url" content="https://clownfish-app-w3bmr.ondigitalocean.app/pixelator/">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' blob: data:;">
+  <title>Pixelator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="/pixelator/favicon_io/favicon-32x32.png">
+  <meta property="og:title" content="Big Pixelator">
+  <meta property="og:description" content="House.">
+  <meta property="og:image" content="/pixelator/face.png">
+  <meta property="og:url" content="https://clownfish-app-w3bmr.ondigitalocean.app/pixelator/">
 </head>
 <body>
-<div class="upload-container">
-  <h1>Big Pixelator</h1>
-  <input type="file" id="imageUpload" accept="image/*">
-</div>
-<div id="controls" style="position: absolute; left: 0; top: 0; padding: 10px;">
-    <div>
-      <label for="seedInput">Seed:</label>
-      <input type="number" id="seedInput" value="0">
-    </div>
-    <div>
-      <label for="useFixedSeed">Use Fixed Seed:</label>
-      <input type="checkbox" id="useFixedSeed">
-    </div>
-    <div>
-      <label for="pixelationRange">Pixelation:</label>
-      <input type="range" id="pixelationRange" min="0" max="100" value="10">
-    </div>
-    <div>
-      <label for="mixRatioRange">Grey-ness:</label>
-      <input type="range" id="mixRatioRange" min="0" max="1" step="0.01" value="0.5">
-    </div>
-    <div>
-      <label for="brightnessRange">Brightness:</label>
-      <input type="range" id="brightnessRange" min="0" max="255" value="128">
-    </div>
-    <div>
-    <button id="exponentializeBtn">EXPONENTIALIZE</button>
-    <button id="shiftBtn">SHIFT</button>
-    </div>
-    <div>
-    <label for="shiftSpeedSlider">Shift Speed:</label>
-    <input type="range" id="shiftSpeedSlider" min="200" max="5000" value="4200">
-    </div>
+  <div class="container">
+    <div class="main-content">
+      <aside class="sidebar">
+        <h1>Big Pixelator</h1>
+        <div class="control-section">
+          <h3>Upload Image</h3>
+          <label for="imageUpload" class="file-upload-label">
+            <span>Choose Image or Video</span>
+            <input type="file" id="imageUpload" accept="image/*,video/*">
+          </label>
+        </div>
 
+        <div class="control-section">
+          <h3>Settings</h3>
+          <div class="control-group">
+            <label for="pixelationRange">
+              <span>Pixelation</span>
+              <output id="pixelationValue">10</output>
+            </label>
+            <input type="range" id="pixelationRange" min="0" max="100" value="10">
+          </div>
+          <div class="control-group">
+            <label for="mixRatioRange">
+              <span>Grayness</span>
+              <output id="mixRatioValue">0.50</output>
+            </label>
+            <input type="range" id="mixRatioRange" min="0" max="1" step="0.01" value="0.5">
+          </div>
+          <div class="control-group">
+            <label for="brightnessRange">
+              <span>Brightness</span>
+              <output id="brightnessValue">128</output>
+            </label>
+            <input type="range" id="brightnessRange" min="0" max="255" value="128">
+          </div>
+          <div class="control-group">
+            <label for="seedInput">
+              <span>Seed</span>
+            </label>
+            <div class="seed-input-group">
+              <input type="number" id="seedInput" value="0">
+              <button id="randomizeSeedBtn" class="btn btn-icon" title="Randomize Seed">🎲</button>
+            </div>
+          </div>
+          <div class="control-group checkbox-group">
+            <label for="useFixedSeed">
+              <input type="checkbox" id="useFixedSeed">
+              <span>Use Fixed Seed</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="control-section" id="effectsSection" style="display: none;">
+          <h3>Effects</h3>
+          <div class="action-buttons" id="imageButtons" style="display: none;">
+            <button id="applyBtn" class="btn btn-secondary">Apply</button>
+            <button id="exponentializeBtn" class="btn btn-secondary">Exponentialize</button>
+            <button id="shiftBtn" class="btn btn-secondary">Shift</button>
+          </div>
+          <div class="action-buttons" id="videoButtons" style="display: none;">
+            <button id="previewFramesBtn" class="btn btn-secondary">Preview First 15 Frames</button>
+            <button id="processVideoBtn" class="btn btn-primary">Process Video</button>
+          </div>
+          <div class="control-group" id="shiftSpeedControl" style="display: none;">
+            <label for="shiftSpeedSlider">
+              <span>Shift Speed</span>
+              <output id="shiftSpeedValue">2500</output>
+            </label>
+            <input type="range" id="shiftSpeedSlider" min="200" max="5000" value="2500">
+          </div>
+        </div>
+
+        <div class="control-section" id="downloadSection" style="display: none;">
+          <button id="downloadBtn" class="btn btn-download">Download Image</button>
+        </div>
+      </aside>
+
+      <main class="canvas-area">
+        <div id="canvasContainer">
+          <canvas id="canvas"></canvas>
+          <video id="videoPlayer" style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;" controls loop></video>
+          <div class="empty-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <p>Upload an image or video to get started</p>
+          </div>
+          <div id="conversionOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px;">
+            <div style="color: white; font-size: 1.5rem; font-weight: 600;">
+              <span id="conversionText">Converting video...</span>
+            </div>
+            <div style="color: rgba(255, 255, 255, 0.9); font-size: 1.25rem; font-weight: 500;">
+              <span id="conversionPercent">0%</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
-<div id="canvasContainer" style="margin-left: 200px;"> <!-- Adjust margin to fit your controls -->
-    <canvas id="canvas"></canvas>
-</div>  
-<button id="downloadBtn">Download Image</button>
-<script src="script.js"></script>
+
+  <script src="ffmpeg/ffmpeg.min.js"></script>
+  <script src="ffmpeg/index.min.js"></script>
+  <!-- Pixelator modules (order matters for dependencies) -->
+  <script src="js/constants.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+
+  <!-- Core rendering -->
+  <script src="js/color.js"></script>
+
+  <!-- Processing modules -->
+  <script src="js/image.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/ffmpeg.js"></script>
+  <script src="js/video.js"></script>
+
+  <!-- UI (must be last) -->
+  <script src="js/ui.js"></script>
 </body>
 </html>

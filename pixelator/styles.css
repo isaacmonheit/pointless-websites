@@ -1,52 +1,210 @@
+:root {
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --primary-color: #4f46e5;
+  --success: #10b981;
+  --sidebar-width: 320px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-xl: 32px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden; /* Prevent scrolling */
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    align-items: center; /* Center horizontally */
-    background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: serif;
+  background-color: #000000;
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+body {
+  background-color: #1a1a1a;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sidebar h1 {
+  margin: 0 0 var(--spacing-md) 0;
+  text-align: center;
+}
+
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.control-section h3 {
+  margin: 0;
+}
+
+/* File Upload */
+.file-upload-label {
+  display: flex;
+  justify-content: center;
+}
+
+.file-upload-label span {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+}
+
+.file-upload-label input[type="file"] {
+  display: none;
+}
+
+/* Control Groups */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Range Sliders */
+input[type="range"] {
+  width: 100%;
+}
+
+/* Number Input */
+input[type="number"] {
+  width: 100%;
+}
+
+/* Checkbox */
+.checkbox-group {
+  flex-direction: row !important;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.checkbox-group label {
+  flex-direction: row;
+  gap: var(--spacing-sm);
+}
+
+.btn-download {
+  width: 100%;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.seed-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.seed-input-group input[type="number"] {
+  flex: 1;
+}
+
+.canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  overflow: hidden;
+  position: relative;
+}
+
+#canvasContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-color: transparent;
+  overflow: visible;
+}
+
+canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* Empty State */
+.empty-state {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+canvas:not([width="0"]) ~ .empty-state {
+  display: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
   }
-  
-  .upload-container {
-    text-align: center;
-    margin-bottom: 20px; /* Space between the upload area and the canvas */
+
+  .sidebar {
+    width: 100%;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
   }
-  
-  #imageUpload, #uploadButton {
-    margin-top: 10px;
+
+  .canvas-area {
+    padding: var(--spacing-md);
   }
-  
-  #canvasContainer {
-    width: 95vw; /* 95% of the viewport width */
-    height: 75vh; /* 80% of the viewport height */
-    display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-  }
-  
-  canvas {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Maintain the aspect ratio */
-    image-rendering: pixelated; /* Keeps pixels sharp when scaled */
-    /* border: 1px solid black; Optional: adds a border around the canvas */
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 600px) {
-    #canvasContainer {
-      height: 60vh; /* Less height on smaller screens */
-    }
-  }
-  
-  /* Add any additional styles for inputs and buttons */
-  
-  button {
-    margin-top: 10px;
-    padding: 5px 15px;
-    font-size: 16px;
-    cursor: pointer;
-  }
+}
   

@@ -1,0 +1,132 @@
+function stopAllActivity() {
+  if (isShifting) {
+    clearInterval(shiftInterval);
+    isShifting = false;
+    const shiftBtn = document.getElementById('shiftBtn');
+    if (shiftBtn) {
+      shiftBtn.classList.remove('active');
+      shiftBtn.textContent = 'Shift';
+    }
+  }
+  if (isPreviewing) {
+    clearInterval(previewInterval);
+    isPreviewing = false;
+    const previewBtn = document.getElementById('previewFramesBtn');
+    if (previewBtn) {
+      previewBtn.classList.remove('active');
+      previewBtn.textContent = `Preview First ${PREVIEW_FRAME_COUNT} Frames`;
+    }
+  }
+
+  // Clean up intermediate frames and data
+  cleanupIntermediateFrames();
+}
+
+function cleanupIntermediateFrames() {
+  // Clear video frames
+  if (videoFrames && videoFrames.length > 0) {
+    videoFrames.forEach(frame => {
+      if (frame && frame.imageData) {
+        frame.imageData = null;
+      }
+    });
+    videoFrames = [];
+  }
+
+  // Clear pixelated intermediate used in shift mode
+  pixelatedIntermediate = null;
+
+  // Clear off-screen canvases
+  if (offScreenCanvas) {
+    offScreenCtx.clearRect(0, 0, offScreenCanvas.width, offScreenCanvas.height);
+    offScreenCanvas.width = 0;
+    offScreenCanvas.height = 0;
+  }
+  if (tempCanvas) {
+    tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCanvas.width = 0;
+    tempCanvas.height = 0;
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  if (imageDownloadUrl) URL.revokeObjectURL(imageDownloadUrl);
+  if (videoDownloadUrl) URL.revokeObjectURL(videoDownloadUrl);
+
+  const vp = document.getElementById('videoPlayer');
+  if (vp?.dataset?.objUrl) {
+    URL.revokeObjectURL(vp.dataset.objUrl);
+  }
+
+  if (currentVideoSrc?.startsWith('blob:')) {
+    URL.revokeObjectURL(currentVideoSrc);
+  }
+});
+
+function downloadBlob(blob, filename) {
+  if (!blob?.size) {
+    alert('Nothing to download yet.');
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  downloadFromUrl(url, filename);
+  setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
+}
+
+function downloadFromUrl(url, filename) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  requestAnimationFrame(() => {
+    a.click();
+    a.remove();
+  });
+}
+
+function seededRandom(seed) {
+  const x = Math.sin(seed) * SEED_RANGE;
+  return x - Math.floor(x);
+}
+
+function generateDeterministicSeed(previousSeed, frameData) {
+  if (useFixedSeed) return currentSeed;
+  const data = frameData.data;
+  let hash = previousSeed;
+  for (let i = 0; i < data.length; i += 4000) {
+    hash = ((hash << 5) - hash + data[i]) | 0;
+    hash = ((hash << 5) - hash + data[i + 1]) | 0;
+    hash = ((hash << 5) - hash + data[i + 2]) | 0;
+  }
+  return Math.abs(hash) % SEED_RANGE;
+}
+
+function generateRandomSeed() {
+  return Math.floor(Math.random() * SEED_RANGE);
+}
+
+function debounce(func, delay) {
+  let debounceTimer;
+  return function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(this, arguments), delay);
+  };
+}
+
+async function uint8FromBlob(blob) {
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+async function fetchBytesFromSrc(src) {
+  const res = await fetch(src);
+  if (!res.ok) throw new Error(`Failed to fetch source media: ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+function calculateTargetDimensions(width, height) {
+  const scale = Math.min(MAX_CANVAS_DIMENSION / width, MAX_CANVAS_DIMENSION / height);
+  return {
+    width: Math.round(width * scale / 2) * 2,
+    height: Math.round(height * scale / 2) * 2
+  };
+}
