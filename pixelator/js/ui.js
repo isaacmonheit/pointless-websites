@@ -144,7 +144,7 @@ async function handleFileUpload(file, clearFileInput = null) {
       canvasEl.style.display = 'block';
       videoPlayer.style.display = 'none';
 
-      displayOriginalImageOptimized(currentImageSrc);
+      displayOriginalImage(currentImageSrc);
     }
   };
 
@@ -320,7 +320,7 @@ document.getElementById('applyBtn').addEventListener('click', async function () 
     applyBtn.textContent = 'Apply';
   } else {
     if (currentImageSrc) {
-      await processImageOptimized(currentImageSrc);
+      await processImage(currentImageSrc);
       applyBtn.classList.add('active');
       applyBtn.textContent = 'Reset';
     }
@@ -482,7 +482,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
 
     setProcessBtnText('Processing frames: 0%');
     // Use ffmpeg-based processing for faster-than-realtime encoding
-    processedVideoBlob = await processFullVideoWithFFmpeg(frameData, (update) => {
+    processedVideoBlob = await processFullVideo(frameData, (update) => {
       const { phase, progress } = update;
       const percent = Math.floor(progress);
       switch (phase) {

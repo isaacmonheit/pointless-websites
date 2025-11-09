@@ -1,6 +1,5 @@
 // ============================================================================
-// SIMPLIFIED VIDEO PROCESSING
-// Stripped down to essentials for reliability
+// VIDEO PROCESSING
 // ============================================================================
 
 /**
@@ -75,28 +74,9 @@ async function extractVideoFrames(videoSrc, maxFrames = 0, progressCallback = nu
 }
 
 /**
- * OPTIMIZED: Process one frame with WebGL
+ * Process one frame
  */
-function processVideoFrameOptimized(frameData, width, height, frameSeed, renderer) {
-  // Try GPU first
-  if (renderer) {
-    const previousSeed = currentSeed;
-    currentSeed = frameSeed;
-
-    // Render directly with GPU
-    const success = renderer.renderImageData(frameData);
-
-    currentSeed = previousSeed;
-
-    if (success) {
-      // Read back from GPU (this is still needed for MediaRecorder)
-      const canvas = renderer.canvas;
-      const ctx = canvas.getContext('2d');
-      return ctx.getImageData(0, 0, width, height);
-    }
-  }
-
-  // CPU fallback
+function processVideoFrame(frameData, width, height, frameSeed) {
   tempCanvas.width = width;
   tempCanvas.height = height;
   tempCtx.putImageData(frameData, 0, 0);
@@ -113,24 +93,16 @@ function processVideoFrameOptimized(frameData, width, height, frameSeed, rendere
 
   const previousSeed = currentSeed;
   currentSeed = frameSeed;
-  imageData = replaceColorsOptimized(imageData);
+  imageData = replaceColors(imageData);
   currentSeed = previousSeed;
 
   return imageData;
 }
 
 /**
- * Process a single frame (called from UI preview loop)
- */
-function processVideoFrame(frameData, width, height, frameSeed) {
-  return processVideoFrameOptimized(frameData, width, height, frameSeed, null);
-}
-
-/**
  * Process video frames and encode with FFmpeg
- * Simplified - removed redundant checks and complexity
  */
-async function processFullVideoWithFFmpeg(frameData, progressCallback = null) {
+async function processFullVideo(frameData, progressCallback = null) {
   const frames = frameData.frames || frameData;
   const fps = frameData.fps || 30;
 
@@ -138,15 +110,6 @@ async function processFullVideoWithFFmpeg(frameData, progressCallback = null) {
   const ffmpeg = new FFmpeg();
 
   try {
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = frames[0].width;
-    canvas.height = frames[0].height;
-
-    // Try GPU acceleration
-    const renderer = getWebGLRenderer(canvas);
-    const useGPU = renderer.init();
-
     // Load FFmpeg
     const baseURL = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
     await ffmpeg.load({
@@ -156,8 +119,8 @@ async function processFullVideoWithFFmpeg(frameData, progressCallback = null) {
     });
 
     // Process frames to RGB buffer
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = frames[0].width;
+    const height = frames[0].height;
     const bytesPerFrame = width * height * 3;
     const rawVideoData = new Uint8Array(frames.length * bytesPerFrame);
 
@@ -170,16 +133,7 @@ async function processFullVideoWithFFmpeg(frameData, progressCallback = null) {
       const f = frames[i];
       frameSeed = generateDeterministicSeed(frameSeed, f.imageData);
 
-      let imageData;
-      if (useGPU) {
-        const prevSeed = currentSeed;
-        currentSeed = frameSeed;
-        renderer.renderImageData(f.imageData);
-        currentSeed = prevSeed;
-        imageData = ctx.getImageData(0, 0, width, height);
-      } else {
-        imageData = processVideoFrameOptimized(f.imageData, f.width, f.height, frameSeed, null);
-      }
+      const imageData = processVideoFrame(f.imageData, f.width, f.height, frameSeed);
 
       // Convert RGBA to RGB
       const offset = i * bytesPerFrame;

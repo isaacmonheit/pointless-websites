@@ -10,7 +10,7 @@ async function exponentializeImage() {
 
   if (!applyBtn.classList.contains('active')) {
     if (currentImageSrc) {
-      await processImageOptimized(currentImageSrc);
+      await processImage(currentImageSrc);
       applyBtn.classList.add('active');
       applyBtn.textContent = 'Reset';
     }
@@ -42,21 +42,14 @@ async function exponentializeImage() {
     }
     const url = URL.createObjectURL(blob);
     currentImageSrc = url;
-    await processImageOptimized(currentImageSrc);
+    await processImage(currentImageSrc);
   }, 'image/png');
-}
-
-/**
- * Shift colors using cached pixelated intermediate
- */
-function shiftImage() {
-  shiftImageOptimized();
 }
 
 /**
  * Toggle shift loop
  */
-function toggleShift() {
+async function toggleShift() {
   const shiftBtn = document.getElementById('shiftBtn');
   const applyBtn = document.getElementById('applyBtn');
 
@@ -73,7 +66,7 @@ function toggleShift() {
   } else {
     if (!applyBtn.classList.contains('active')) {
       if (currentImageSrc) {
-        processImage(currentImageSrc);
+        await processImage(currentImageSrc);
         applyBtn.classList.add('active');
         applyBtn.textContent = 'Reset';
       }
@@ -104,5 +97,5 @@ async function resetImage() {
 
   currentImageSrc = originalImageSrc;
 
-  await displayOriginalImageOptimized(currentImageSrc);
+  await displayOriginalImage(currentImageSrc);
 }

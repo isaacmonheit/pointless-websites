@@ -1,8 +1,7 @@
 // ============================================================================
-// OPTIMIZED IMAGE PROCESSING
+// IMAGE PROCESSING
 // - createImageBitmap for faster decode/resize
 // - Buffer reuse (minimize getImageData/putImageData calls)
-// - WebGL-first with CPU fallback
 // ============================================================================
 
 // Reusable ImageData buffer
@@ -41,9 +40,9 @@ function getReusableBuffer(width, height) {
 }
 
 /**
- * OPTIMIZED: Process image with WebGL (GPU) or fallback to CPU
+ * Process image
  */
-async function processImageOptimized(imgSrc) {
+async function processImage(imgSrc) {
   try {
     // Convert data URL to blob for createImageBitmap
     const blob = await fetch(imgSrc).then(r => r.blob());
@@ -60,54 +59,31 @@ async function processImageOptimized(imgSrc) {
     canvas.width = targetWidth;
     canvas.height = targetHeight;
 
-    // Try WebGL first (10-100x faster)
-    const renderer = getWebGLRenderer(canvas);
-    const gpuSuccess = renderer.render(bitmap, targetWidth, targetHeight);
-
-    if (gpuSuccess) {
-      // GPU rendering successful
-      bitmap.close && bitmap.close(); // Free bitmap memory
-
-      // For shifting, we need the pixelated intermediate
-      // Read it back from GPU (only once, not per-pixel)
-      if (pixelationValue > 0) {
-        pixelatedIntermediate = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      } else {
-        pixelatedIntermediate = null;
-      }
-
-      refreshImageDownloadUrl();
-      return;
-    }
-
-    // Fallback to CPU
-    console.log('Using CPU fallback for image processing');
     ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
 
-    // CPU pixelation
+    // Pixelation
     pixelateImage(ctx, bitmap);
     bitmap.close && bitmap.close();
 
     // Store intermediate
     pixelatedIntermediate = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    // Color replace with optimized LUT
+    // Color replace with LUT
     let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    imageData = replaceColorsOptimized(imageData);
+    imageData = replaceColors(imageData);
     ctx.putImageData(imageData, 0, 0);
 
     refreshImageDownloadUrl();
   } catch (error) {
-    console.error('Optimized image processing failed:', error);
-    // Fall back to original method
-    processImage(imgSrc);
+    console.error('Image processing failed:', error);
+    throw error;
   }
 }
 
 /**
- * OPTIMIZED: Display original image with createImageBitmap
+ * Display original image with createImageBitmap
  */
-async function displayOriginalImageOptimized(imgSrc) {
+async function displayOriginalImage(imgSrc) {
   try {
     const blob = await fetch(imgSrc).then(r => r.blob());
     const bitmap = await loadImageFast(blob);
@@ -129,29 +105,18 @@ async function displayOriginalImageOptimized(imgSrc) {
     pixelatedIntermediate = null;
     refreshImageDownloadUrl();
   } catch (error) {
-    console.error('Optimized image display failed:', error);
-    displayOriginalImage(imgSrc);
+    console.error('Image display failed:', error);
+    throw error;
   }
 }
 
 /**
- * OPTIMIZED: Shift with WebGL or CPU
+ * Shift colors
  */
-function shiftImageOptimized() {
+function shiftImage() {
   if (!pixelatedIntermediate) return;
 
   const canvas = document.getElementById('canvas');
-
-  // Try GPU path first
-  const renderer = getWebGLRenderer(canvas);
-  const gpuSuccess = renderer.renderImageData(pixelatedIntermediate);
-
-  if (gpuSuccess) {
-    refreshImageDownloadUrl();
-    return;
-  }
-
-  // CPU fallback
   const ctx = canvas.getContext('2d');
 
   // Reuse buffer to avoid allocation
@@ -163,8 +128,8 @@ function shiftImageOptimized() {
   // Copy data
   imageData.data.set(pixelatedIntermediate.data);
 
-  // Apply new palette (optimized)
-  replaceColorsOptimized(imageData);
+  // Apply new palette
+  replaceColors(imageData);
 
   // Single putImageData (not multiple)
   ctx.putImageData(imageData, 0, 0);
@@ -188,75 +153,6 @@ function pixelateImage(context, image) {
   context.webkitImageSmoothingEnabled = false;
   context.imageSmoothingEnabled = false;
   context.drawImage(context.canvas, 0, 0, scaledWidth, scaledHeight, 0, 0, context.canvas.width, context.canvas.height);
-}
-
-/**
- * CPU fallback for original processImage
- */
-function processImage(imgSrc) {
-  const img = new Image();
-  img.onload = function () {
-    // Use same scaling logic as videos for consistency
-    const maxDim = MAX_CANVAS_DIMENSION;
-    const scale = Math.min(maxDim / img.width, maxDim / img.height);
-    const targetWidth = Math.round(img.width * scale / 2) * 2;
-    const targetHeight = Math.round(img.height * scale / 2) * 2;
-
-    tempCanvas.width = targetWidth;
-    tempCanvas.height = targetHeight;
-    tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    ctx.drawImage(tempCanvas, 0, 0);
-
-    pixelateImage(ctx, img);
-    pixelatedIntermediate = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    imageData = replaceColorsOptimized(imageData);
-    ctx.putImageData(imageData, 0, 0);
-
-    refreshImageDownloadUrl();
-  };
-  img.src = imgSrc;
-}
-
-/**
- * CPU fallback for displayOriginalImage
- */
-function displayOriginalImage(imgSrc) {
-  const img = new Image();
-  img.onload = function () {
-    // Use same scaling logic as videos for consistency
-    const maxDim = MAX_CANVAS_DIMENSION;
-    const scale = Math.min(maxDim / img.width, maxDim / img.height);
-    const targetWidth = Math.round(img.width * scale / 2) * 2;
-    const targetHeight = Math.round(img.height * scale / 2) * 2;
-
-    tempCanvas.width = targetWidth;
-    tempCanvas.height = targetHeight;
-    tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    ctx.drawImage(tempCanvas, 0, 0);
-
-    pixelatedIntermediate = null;
-    refreshImageDownloadUrl();
-  };
-  img.src = imgSrc;
-}
-
-/**
- * Shift image (backwards compatible)
- */
-function shiftImage() {
-  shiftImageOptimized();
 }
 
 function refreshImageDownloadUrl() {
