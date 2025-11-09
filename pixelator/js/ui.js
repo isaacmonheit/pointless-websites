@@ -13,7 +13,7 @@ async function handleFileUpload(file, clearFileInput = null) {
   if (isVideoMode && needsConversion(file)) {
     if (
       !confirm(
-        'This video type needs to be converted to .mp4 or .webm before pixelatifying!\n\nThe in-browser conversion code may be slow; converting yourself first may be faster. Continue and convert here?'
+        'This video type needs to be converted to .mp4 or .webm before pixelating!\n\nThe page can automatically convert it in-browser, but it will be SLOW!\n\nContinue?'
       )
     ) {
       if (clearFileInput) clearFileInput();

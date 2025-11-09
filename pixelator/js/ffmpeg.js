@@ -89,13 +89,13 @@ async function convertVideoToWebM(file, progressCallback = null) {
   const outputName = 'output.webm';
 
   try {
-    if (progressCallback) progressCallback('Converting video...', 10);
+    if (progressCallback) progressCallback('Converting video...', 0);
 
     await convertFFmpeg.writeFile(inputName, await fetchFile(file));
 
-    let lastProgress = 10;
+    let lastProgress = 0;
     const progressHandler = ({ progress }) => {
-      const percent = Math.round(progress * 80) + 10; // 10-90%
+      const percent = Math.round(progress * 100); // 0-100%
       if (percent > lastProgress) {
         lastProgress = percent;
         if (progressCallback)
@@ -122,8 +122,6 @@ async function convertVideoToWebM(file, progressCallback = null) {
     } finally {
       convertFFmpeg.off('progress', progressHandler);
     }
-
-    if (progressCallback) progressCallback('Finalizing...', 95);
 
     const data = await convertFFmpeg.readFile(outputName);
 
