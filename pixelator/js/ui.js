@@ -106,6 +106,21 @@ async function handleFileUpload(file, clearFileInput = null) {
       // Display the uploaded video immediately
       videoPlayer.src = currentVideoSrc;
       videoPlayer.load();
+
+      // Scale video player to match processed video dimensions
+      videoPlayer.addEventListener('loadedmetadata', function scaleVideo() {
+        const maxDim = MAX_CANVAS_DIMENSION;
+        const scale = Math.min(maxDim / videoPlayer.videoWidth, maxDim / videoPlayer.videoHeight);
+        const targetWidth = Math.round(videoPlayer.videoWidth * scale / 2) * 2;
+        const targetHeight = Math.round(videoPlayer.videoHeight * scale / 2) * 2;
+
+        videoPlayer.style.width = targetWidth + 'px';
+        videoPlayer.style.height = targetHeight + 'px';
+
+        // Remove listener after first use
+        videoPlayer.removeEventListener('loadedmetadata', scaleVideo);
+      });
+
       canvasEl.style.display = 'none';
       videoPlayer.style.display = 'block';
     } else {
