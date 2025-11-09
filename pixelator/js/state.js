@@ -21,10 +21,6 @@ let processedVideoBlob = null;
 let isProcessingVideo = false;
 let cancelVideoProcessing = false;
 
-// FFmpeg state
-let ffmpeg = null;
-let ffmpegLoaded = false;
-
 // Off-screen canvases for image processing (reused to avoid allocation overhead)
 let offScreenCanvas = document.createElement('canvas');
 let offScreenCtx = offScreenCanvas.getContext('2d', { willReadFrequently: true });

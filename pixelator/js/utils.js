@@ -14,7 +14,7 @@ function stopAllActivity() {
     const previewBtn = document.getElementById('previewFramesBtn');
     if (previewBtn) {
       previewBtn.classList.remove('active');
-      previewBtn.textContent = 'Preview First 15 Frames';
+      previewBtn.textContent = `Preview First ${PREVIEW_FRAME_COUNT} Frames`;
     }
   }
 
@@ -70,7 +70,7 @@ function downloadBlob(blob, filename) {
   }
   const url = URL.createObjectURL(blob);
   downloadFromUrl(url, filename);
-  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  setTimeout(() => URL.revokeObjectURL(url), URL_REVOKE_DELAY_MS);
 }
 
 function downloadFromUrl(url, filename) {
@@ -85,7 +85,7 @@ function downloadFromUrl(url, filename) {
 }
 
 function seededRandom(seed) {
-  const x = Math.sin(seed) * 10000;
+  const x = Math.sin(seed) * SEED_RANGE;
   return x - Math.floor(x);
 }
 
@@ -98,11 +98,11 @@ function generateDeterministicSeed(previousSeed, frameData) {
     hash = ((hash << 5) - hash + data[i + 1]) | 0;
     hash = ((hash << 5) - hash + data[i + 2]) | 0;
   }
-  return Math.abs(hash) % 10000;
+  return Math.abs(hash) % SEED_RANGE;
 }
 
 function generateRandomSeed() {
-  return Math.floor(Math.random() * 10000);
+  return Math.floor(Math.random() * SEED_RANGE);
 }
 
 function debounce(func, delay) {

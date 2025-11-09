@@ -115,9 +115,8 @@ function setupImageModeUI(imageSrc) {
 async function handleFileUpload(file, clearFileInput = null) {
   if (!file) return;
 
-  // Check file size and warn if over 800 MB
+  // Check file size and warn if over threshold
   const fileSizeMB = file.size / 1024 / 1024;
-  const SIZE_WARNING_THRESHOLD_MB = 800;
 
   if (fileSizeMB > SIZE_WARNING_THRESHOLD_MB) {
     const proceed = confirm(
@@ -165,7 +164,7 @@ async function handleFileUpload(file, clearFileInput = null) {
 
       setTimeout(() => {
         conversionOverlay.style.display = 'none';
-      }, 1500);
+      }, CONVERSION_OVERLAY_DELAY_MS);
     } catch (error) {
       console.error('Conversion error:', error);
       conversionOverlay.style.display = 'none';
@@ -350,7 +349,7 @@ document.getElementById('useFixedSeed').addEventListener('change', function (eve
 
 // Apply/Reset button
 document.getElementById('applyBtn').addEventListener('click', async function () {
-  const isActive = document.getElementById('applyBtn').classList.contains('active');
+  const isActive = this.classList.contains('active');
 
   if (isActive) {
     await resetImage();
@@ -383,16 +382,17 @@ document.getElementById('shiftSpeedSlider').addEventListener('input', function (
 document.getElementById('previewFramesBtn').addEventListener('click', async function () {
   if (!currentVideoSrc) return;
 
+  const previewBtn = this;
+  const canvas = document.getElementById('canvas');
   const videoPlayer = document.getElementById('videoPlayer');
-  videoPlayer.pause();
 
-  const previewBtn = document.getElementById('previewFramesBtn');
+  videoPlayer.pause();
 
   if (isPreviewing) {
     clearInterval(previewInterval);
     isPreviewing = false;
-    resetButton('previewFramesBtn', 'Preview First 15 Frames');
-    document.getElementById('canvas').style.display = 'none';
+    resetButton('previewFramesBtn', `Preview First ${PREVIEW_FRAME_COUNT} Frames`);
+    canvas.style.display = 'none';
     videoPlayer.style.display = 'block';
     return;
   }
@@ -402,7 +402,7 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
 
   try {
     if (videoFrames.length === 0) {
-      const result = await extractVideoFrames(currentVideoSrc, 15, (progress) => {
+      const result = await extractVideoFrames(currentVideoSrc, PREVIEW_FRAME_COUNT, (progress) => {
         previewBtn.textContent = `Extracting: ${Math.floor(progress)}%`;
       });
       videoFrames = result.frames || result; // Handle both old and new format
@@ -411,14 +411,12 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
     if (videoFrames.length === 0) {
       alert('Failed to extract video frames');
       previewBtn.disabled = false;
-      previewBtn.textContent = 'Preview First 15 Frames';
+      previewBtn.textContent = `Preview First ${PREVIEW_FRAME_COUNT} Frames`;
       return;
     }
 
-    document.getElementById('canvas').style.display = 'block';
-    document.getElementById('videoPlayer').style.display = 'none';
-
-    const canvas = document.getElementById('canvas');
+    canvas.style.display = 'block';
+    videoPlayer.style.display = 'none';
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
     canvas.width = videoFrames[0].width;
@@ -452,7 +450,7 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
     console.error('Preview error:', error);
     alert('Failed to preview video: ' + error.message);
     previewBtn.disabled = false;
-    previewBtn.textContent = 'Preview First 15 Frames';
+    previewBtn.textContent = `Preview First ${PREVIEW_FRAME_COUNT} Frames`;
   }
 });
 
@@ -460,7 +458,9 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
 document.getElementById('processVideoBtn').addEventListener('click', async function () {
   if (!currentVideoSrc) return;
 
-  const processBtn = document.getElementById('processVideoBtn');
+  const processBtn = this;
+  const canvas = document.getElementById('canvas');
+  const videoPlayer = document.getElementById('videoPlayer');
 
   // If already processing, cancel it
   if (isProcessingVideo) {
@@ -478,8 +478,8 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
   processBtn.disabled = false; // Keep enabled so user can click to cancel
   processBtn.classList.add('processing');
 
-  document.getElementById('canvas').style.display = 'block';
-  document.getElementById('videoPlayer').style.display = 'none';
+  canvas.style.display = 'block';
+  videoPlayer.style.display = 'none';
 
   try {
     setProcessBtnText('Extracting frames: 0%');
@@ -563,7 +563,6 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
       }
     }
 
-    const videoPlayer = document.getElementById('videoPlayer');
     if (!processedVideoBlob?.size) {
       console.error('No processed video blob to play.');
       processBtn.disabled = false;
@@ -583,7 +582,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     videoPlayer.dataset.objUrl = objUrl;
     videoPlayer.src = objUrl;
     videoPlayer.style.display = 'block';
-    document.getElementById('canvas').style.display = 'none';
+    canvas.style.display = 'none';
 
     videoDownloadUrl = objUrl;
 
