@@ -106,6 +106,11 @@ function shiftImage() {
   // Copy data
   imageData.data.set(pixelatedIntermediate.data);
 
+  // Invalidate cache to get new palette when not using fixed seed
+  if (!useFixedSeed) {
+    invalidateLUTCache();
+  }
+
   // Apply new palette
   replaceColors(imageData);
 
