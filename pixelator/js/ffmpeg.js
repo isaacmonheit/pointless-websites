@@ -159,21 +159,7 @@ async function muxOriginalAudioIntoProcessed(processedVideoBlob, originalVideoSr
     await cleanupFFmpegFiles(muxFFmpeg, inProcessed, inOriginal, extractedAudio, outName);
 
     let processedBytes = await uint8FromBlob(processedVideoBlob);
-    const processedSizeMB = processedBytes.length / 1024 / 1024;
-
     let origBytes = await fetchBytesFromSrc(originalVideoSrc);
-    const originalSizeMB = origBytes.length / 1024 / 1024;
-
-    const MAX_PROCESSED_SIZE_MB = 20;
-    const MAX_ORIGINAL_SIZE_MB = 30;
-
-    if (processedSizeMB > MAX_PROCESSED_SIZE_MB) {
-      throw new Error(`Processed video too large (${processedSizeMB.toFixed(2)} MB > ${MAX_PROCESSED_SIZE_MB} MB). Try a shorter clip or lower resolution.`);
-    }
-
-    if (originalSizeMB > MAX_ORIGINAL_SIZE_MB) {
-      throw new Error(`Original video too large (${originalSizeMB.toFixed(2)} MB > ${MAX_ORIGINAL_SIZE_MB} MB). Try a shorter clip.`);
-    }
 
     // STEP 1: Extract audio from original
     try {

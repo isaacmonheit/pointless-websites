@@ -47,13 +47,35 @@ function cleanupVideoUrls() {
 async function handleFileUpload(file, clearFileInput = null) {
   if (!file) return;
 
+  // Check file size and warn if over 800 MB
+  const fileSizeMB = file.size / 1024 / 1024;
+  const SIZE_WARNING_THRESHOLD_MB = 800;
+
+  if (fileSizeMB > SIZE_WARNING_THRESHOLD_MB) {
+    const proceed = confirm(
+      `WARNING: Large file detected!\n\n` +
+      `File size: ${fileSizeMB.toFixed(2)} MB\n\n` +
+      `Processing files larger than ${SIZE_WARNING_THRESHOLD_MB} MB may crash your browser tab due to memory limits.\n\n` +
+      `Do you want to proceed anyway?`
+    );
+
+    if (!proceed) {
+      clearFileInput?.();
+      return;
+    }
+  }
+
   stopAllActivity();
 
   isVideoMode = file.type.startsWith('video/');
   let wasConverted = false;
 
   if (isVideoMode && needsConversion(file)) {
-    if (!confirm('This video type needs to be converted to .mp4 or .webm before pixelating!\n\nThe page can automatically convert it in-browser, but it will be SLOW!\n\nContinue?')) {
+    if (!confirm(
+        'This video type needs to be converted to .mp4 or .webm before pixelating!\n\n' +
+        'The page can automatically convert it in-browser, but it will be SLOW!\n\n' +
+        'Continue?'
+        )) {
       clearFileInput?.();
       return;
     }
