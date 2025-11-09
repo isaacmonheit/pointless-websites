@@ -48,30 +48,9 @@ async function exponentializeImage() {
 
 /**
  * Shift colors using cached pixelated intermediate
- * Now uses optimized version defined in image-optimized.js
  */
 function shiftImage() {
-  // This now calls shiftImageOptimized which handles GPU/CPU
-  if (typeof shiftImageOptimized !== 'undefined') {
-    shiftImageOptimized();
-  } else {
-    // Fallback if optimized version not loaded
-    if (!pixelatedIntermediate) return;
-
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-
-    const imageData = new ImageData(
-      new Uint8ClampedArray(pixelatedIntermediate.data),
-      pixelatedIntermediate.width,
-      pixelatedIntermediate.height
-    );
-
-    const coloredData = replaceColors(imageData);
-    ctx.putImageData(coloredData, 0, 0);
-
-    refreshImageDownloadUrl();
-  }
+  shiftImageOptimized();
 }
 
 /**
@@ -125,10 +104,5 @@ async function resetImage() {
 
   currentImageSrc = originalImageSrc;
 
-  // Use optimized version if available
-  if (typeof displayOriginalImageOptimized !== 'undefined') {
-    await displayOriginalImageOptimized(currentImageSrc);
-  } else {
-    displayOriginalImage(currentImageSrc);
-  }
+  await displayOriginalImageOptimized(currentImageSrc);
 }

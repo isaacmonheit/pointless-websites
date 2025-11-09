@@ -144,12 +144,7 @@ async function handleFileUpload(file, clearFileInput = null) {
       canvasEl.style.display = 'block';
       videoPlayer.style.display = 'none';
 
-      // Use optimized version if available
-      if (typeof displayOriginalImageOptimized !== 'undefined') {
-        displayOriginalImageOptimized(currentImageSrc);
-      } else {
-        displayOriginalImage(currentImageSrc);
-      }
+      displayOriginalImageOptimized(currentImageSrc);
     }
   };
 
@@ -274,7 +269,7 @@ document
   .getElementById('mixRatioRange')
   .addEventListener('change', function (event) {
     mixRatioValue = parseFloat(event.target.value);
-    if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
+    invalidateLUTCache();
     if (pixelatedIntermediate) shiftImage();
   });
 
@@ -289,14 +284,14 @@ document
   .getElementById('brightnessRange')
   .addEventListener('change', function (event) {
     brightnessValue = parseInt(event.target.value, 10);
-    if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
+    invalidateLUTCache();
     if (pixelatedIntermediate) shiftImage();
   });
 
 // Seed input
 document.getElementById('seedInput').addEventListener('change', function (event) {
   currentSeed = parseInt(event.target.value, 10);
-  if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
+  invalidateLUTCache();
   if (pixelatedIntermediate) shiftImage();
 });
 
@@ -305,7 +300,7 @@ document.getElementById('randomizeSeedBtn').addEventListener('click', function (
   const newSeed = generateRandomSeed();
   currentSeed = newSeed;
   document.getElementById('seedInput').value = newSeed;
-  if (typeof invalidateLUTCache !== 'undefined') invalidateLUTCache();
+  invalidateLUTCache();
   if (pixelatedIntermediate) shiftImage();
 });
 
@@ -325,12 +320,7 @@ document.getElementById('applyBtn').addEventListener('click', async function () 
     applyBtn.textContent = 'Apply';
   } else {
     if (currentImageSrc) {
-      // Use optimized version if available
-      if (typeof processImageOptimized !== 'undefined') {
-        await processImageOptimized(currentImageSrc);
-      } else {
-        processImage(currentImageSrc);
-      }
+      await processImageOptimized(currentImageSrc);
       applyBtn.classList.add('active');
       applyBtn.textContent = 'Reset';
     }
@@ -492,34 +482,23 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
 
     setProcessBtnText('Processing frames: 0%');
     // Use ffmpeg-based processing for faster-than-realtime encoding
-    if (typeof processFullVideoWithFFmpeg !== 'undefined') {
-      processedVideoBlob = await processFullVideoWithFFmpeg(frameData, (update) => {
-        // Handle both old (number) and new (object) callback format
-        if (typeof update === 'number') {
-          setProcessBtnText(`Processing video: ${Math.floor(update)}%`);
-        } else {
-          const { phase, progress } = update;
-          const percent = Math.floor(progress);
-          switch (phase) {
-            case 'processing':
-              setProcessBtnText(`Processing frames: ${percent}%`);
-              break;
-            case 'preparing':
-              setProcessBtnText(`Preparing encoder: ${percent}%`);
-              break;
-            case 'encoding':
-              setProcessBtnText(`Encoding video: ${percent}%`);
-              break;
-            default:
-              setProcessBtnText(`Processing: ${percent}%`);
-          }
-        }
-      });
-    } else {
-      processedVideoBlob = await processFullVideo(frameData, (progress) => {
-        setProcessBtnText(`Processing video: ${Math.floor(progress)}%`);
-      });
-    }
+    processedVideoBlob = await processFullVideoWithFFmpeg(frameData, (update) => {
+      const { phase, progress } = update;
+      const percent = Math.floor(progress);
+      switch (phase) {
+        case 'processing':
+          setProcessBtnText(`Processing frames: ${percent}%`);
+          break;
+        case 'preparing':
+          setProcessBtnText(`Preparing encoder: ${percent}%`);
+          break;
+        case 'encoding':
+          setProcessBtnText(`Encoding video: ${percent}%`);
+          break;
+        default:
+          setProcessBtnText(`Processing: ${percent}%`);
+      }
+    });
 
     // Check if cancelled during video processing
     if (cancelVideoProcessing) {

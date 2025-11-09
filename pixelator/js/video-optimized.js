@@ -246,10 +246,3 @@ async function processFullVideoWithFFmpeg(frameData, progressCallback = null) {
     throw err;
   }
 }
-
-/**
- * Wrapper for backwards compatibility
- */
-async function processFullVideo(frames, progressCallback = null) {
-  return processFullVideoWithFFmpeg(frames, progressCallback);
-}
