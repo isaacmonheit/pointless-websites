@@ -8,6 +8,7 @@ async function handleFileUpload(file, clearFileInput = null) {
   stopAllActivity();
 
   isVideoMode = file.type.startsWith('video/');
+  let wasConverted = false;
 
   if (isVideoMode && needsConversion(file)) {
     if (
@@ -31,11 +32,9 @@ async function handleFileUpload(file, clearFileInput = null) {
         conversionPercent.textContent = Math.round(percent) + '%';
       });
 
-      file = new File(
-        [convertedBlob],
-        file.name.replace(/\.[^.]+$/, '.webm'),
-        { type: 'video/webm' }
-      );
+      // Replace file with converted blob - original is now freed
+      file = convertedBlob;
+      wasConverted = true;
 
       setTimeout(() => {
         conversionOverlay.style.display = 'none';
@@ -81,7 +80,6 @@ async function handleFileUpload(file, clearFileInput = null) {
 
     if (isVideoMode) {
       // Video mode
-      currentVideoSrc = e.target.result;
       videoFrames = [];
       processedVideoBlob = null;
 
@@ -94,6 +92,13 @@ async function handleFileUpload(file, clearFileInput = null) {
         URL.revokeObjectURL(videoPlayer.dataset.objUrl);
         delete videoPlayer.dataset.objUrl;
       }
+      // Revoke old source if it was a blob URL
+      if (currentVideoSrc && currentVideoSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(currentVideoSrc);
+      }
+
+      // Use blob URL for converted videos to save memory
+      currentVideoSrc = wasConverted ? URL.createObjectURL(file) : e.target.result;
 
       effectsSection.style.display = 'flex';
       downloadSection.style.display = 'block';
@@ -366,6 +371,11 @@ document.getElementById('previewFramesBtn').addEventListener('click', async func
     previewBtn.classList.remove('active');
     previewBtn.textContent = 'Preview First 15 Frames';
     document.getElementById('canvas').style.display = 'none';
+
+    // Show the video player (processed if available, otherwise original)
+    const videoPlayer = document.getElementById('videoPlayer');
+    videoPlayer.style.display = 'block';
+
     return;
   }
 
@@ -448,6 +458,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
   cancelVideoProcessing = false;
 
   processBtn.disabled = false; // Keep enabled so user can click to cancel
+  processBtn.classList.add('processing');
 
   document.getElementById('canvas').style.display = 'block';
   document.getElementById('videoPlayer').style.display = 'none';
@@ -462,6 +473,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     if (cancelVideoProcessing) {
       console.log('Video processing cancelled during frame extraction');
       processBtn.textContent = originalText;
+      processBtn.classList.remove('processing');
       isProcessingVideo = false;
       cancelVideoProcessing = false;
       isHoveringProcessBtn = false;
@@ -473,6 +485,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
       alert('Failed to extract video frames');
       processBtn.disabled = false;
       processBtn.textContent = originalText;
+      processBtn.classList.remove('processing');
       isProcessingVideo = false;
       return;
     }
@@ -512,6 +525,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     if (cancelVideoProcessing) {
       console.log('Video processing cancelled during encoding');
       processBtn.textContent = originalText;
+      processBtn.classList.remove('processing');
       isProcessingVideo = false;
       cancelVideoProcessing = false;
       isHoveringProcessBtn = false;
@@ -547,6 +561,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
       console.error('No processed video blob to play.');
       processBtn.disabled = false;
       processBtn.textContent = originalText;
+      processBtn.classList.remove('processing');
       return;
     }
 
@@ -574,6 +589,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
     isProcessingVideo = false;
     cancelVideoProcessing = false;
     isHoveringProcessBtn = false;
+    processBtn.classList.remove('processing');
 
     // Keep message longer if there's no audio (so user notices the warning)
     const messageDisplayTime = hasAudio ? 2000 : 5000;
@@ -592,6 +608,7 @@ document.getElementById('processVideoBtn').addEventListener('click', async funct
 
     processBtn.disabled = false;
     processBtn.textContent = originalText;
+    processBtn.classList.remove('processing');
 
     // Reset processing state
     isProcessingVideo = false;
@@ -624,7 +641,6 @@ processVideoBtn.addEventListener('mouseenter', function () {
     isHoveringProcessBtn = true;
     originalProcessText = processVideoBtn.textContent;
     processVideoBtn.textContent = 'Cancel';
-    processVideoBtn.style.cursor = 'pointer';
   }
 });
 

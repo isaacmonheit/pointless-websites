@@ -49,11 +49,11 @@ async function processImageOptimized(imgSrc) {
     const blob = await fetch(imgSrc).then(r => r.blob());
     const bitmap = await loadImageFast(blob);
 
-    // Calculate target dimensions
-    const maxDimension = MAX_CANVAS_DIMENSION;
-    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-    const targetWidth = Math.floor(bitmap.width * scale);
-    const targetHeight = Math.floor(bitmap.height * scale);
+    // Use same scaling logic as videos for consistency
+    const maxDim = MAX_CANVAS_DIMENSION;
+    const scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height);
+    const targetWidth = Math.round(bitmap.width * scale / 2) * 2;
+    const targetHeight = Math.round(bitmap.height * scale / 2) * 2;
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -112,10 +112,11 @@ async function displayOriginalImageOptimized(imgSrc) {
     const blob = await fetch(imgSrc).then(r => r.blob());
     const bitmap = await loadImageFast(blob);
 
-    const maxDimension = MAX_CANVAS_DIMENSION;
-    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-    const targetWidth = Math.floor(bitmap.width * scale);
-    const targetHeight = Math.floor(bitmap.height * scale);
+    // Use same scaling logic as videos for consistency
+    const maxDim = MAX_CANVAS_DIMENSION;
+    const scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height);
+    const targetWidth = Math.round(bitmap.width * scale / 2) * 2;
+    const targetHeight = Math.round(bitmap.height * scale / 2) * 2;
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -195,22 +196,20 @@ function pixelateImage(context, image) {
 function processImage(imgSrc) {
   const img = new Image();
   img.onload = function () {
-    const maxDimension = MAX_CANVAS_DIMENSION;
+    // Use same scaling logic as videos for consistency
+    const maxDim = MAX_CANVAS_DIMENSION;
+    const scale = Math.min(maxDim / img.width, maxDim / img.height);
+    const targetWidth = Math.round(img.width * scale / 2) * 2;
+    const targetHeight = Math.round(img.height * scale / 2) * 2;
 
-    tempCanvas.width =
-      img.width >= img.height
-        ? maxDimension
-        : Math.floor((img.width / img.height) * maxDimension);
-    tempCanvas.height =
-      img.height >= img.width
-        ? maxDimension
-        : Math.floor((img.height / img.width) * maxDimension);
-    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+    tempCanvas.width = targetWidth;
+    tempCanvas.height = targetHeight;
+    tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = tempCanvas.width;
-    canvas.height = tempCanvas.height;
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
     ctx.drawImage(tempCanvas, 0, 0);
 
     pixelateImage(ctx, img);
@@ -231,22 +230,20 @@ function processImage(imgSrc) {
 function displayOriginalImage(imgSrc) {
   const img = new Image();
   img.onload = function () {
-    const maxDimension = MAX_CANVAS_DIMENSION;
+    // Use same scaling logic as videos for consistency
+    const maxDim = MAX_CANVAS_DIMENSION;
+    const scale = Math.min(maxDim / img.width, maxDim / img.height);
+    const targetWidth = Math.round(img.width * scale / 2) * 2;
+    const targetHeight = Math.round(img.height * scale / 2) * 2;
 
-    tempCanvas.width =
-      img.width >= img.height
-        ? maxDimension
-        : Math.floor((img.width / img.height) * maxDimension);
-    tempCanvas.height =
-      img.height >= img.width
-        ? maxDimension
-        : Math.floor((img.height / img.width) * maxDimension);
-    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+    tempCanvas.width = targetWidth;
+    tempCanvas.height = targetHeight;
+    tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = tempCanvas.width;
-    canvas.height = tempCanvas.height;
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
     ctx.drawImage(tempCanvas, 0, 0);
 
     pixelatedIntermediate = null;

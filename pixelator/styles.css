@@ -74,7 +74,6 @@ body {
 .file-upload-label {
   display: flex;
   justify-content: center;
-  cursor: pointer;
 }
 
 .file-upload-label span {
@@ -124,7 +123,6 @@ input[type="number"] {
   cursor: pointer;
 }
 
-/* Buttons */
 .btn-download {
   width: 100%;
 }
@@ -144,7 +142,6 @@ input[type="number"] {
   flex: 1;
 }
 
-/* Canvas Area */
 .canvas-area {
   flex: 1;
   display: flex;

@@ -64,6 +64,10 @@ window.addEventListener('beforeunload', () => {
   if (vp && vp.dataset && vp.dataset.objUrl) {
     URL.revokeObjectURL(vp.dataset.objUrl);
   }
+  // Clean up currentVideoSrc if it's a blob URL
+  if (currentVideoSrc && currentVideoSrc.startsWith('blob:')) {
+    URL.revokeObjectURL(currentVideoSrc);
+  }
 });
 
 // Reuse a helper to download without blocking
