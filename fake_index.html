@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZONK PROJECTS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: hsl(242, 83%, 36%);
+        }
+        .header {
+            text-align: center;
+            padding: 70px;
+            padding-bottom: 50px;
+            /* background-color: #fff; */
+        }
+        .title {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px #000000;
+            user-select: none;
+        }
+        p {
+            color: #8f8f8f;
+            font-size: 1.0em;
+            margin-top: 5px;
+            margin-bottom: 0px;
+            text-shadow: 2px 2px 4px #b9b9b9;
+            user-select: none;
+        }
+        .p2 {
+            font-size: 0.8em;
+            user-select: none;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            /* background-color: #d77155; This sets the brown background color */
+            /* set background to an image instead of color */
+            background-image: url('home_page_images/corkboard.jpeg');
+            border-radius: 0; /* Optional: if you want the outer edge of the whole grid to be square as well */
+            margin: auto; /* This centers the grid-container if it's narrower than the full width */
+            max-width: 1200px; /* Optional: if you want to limit the maximum width of the grid */
+        }
+
+        .grid-item {
+            /* background-color: #ffffff; */
+            border-radius: 0;
+            /* padding: 3px; */
+            transition: transform 0.2s ease;
+            user-select: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .grid-item .static-image, 
+        .grid-item .hover-gif {
+            width: 100%;
+            height: auto;
+            display: block; /* Ensure images are not inline */
+        }
+
+        .grid-item .hover-gif {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0; /* Hide the GIF initially */
+        }
+
+        .grid-item:hover .static-image {
+            opacity: 0; /* Hide the static image */
+        }
+
+        .grid-item:hover .hover-gif {
+            opacity: 1; /* Show the GIF */
+        }
+
+        .grid-item:hover {
+            transform: scale(1.05); /* Scale up the item slightly */
+        }
+
+        .grid-item:hover .thumbtack {
+            display: none; /* Hide the thumbtack when hovering */
+        }
+
+        .grid-item img {
+            /* stretch img to make it so it fits the whole box */
+            width: 100%;
+            height: 100%;
+            /* border-radius: 20px; */
+            display: block;
+            object-fit: cover;
+        }
+
+        .thumbtack {
+            width: 40px; /* Size of the thumbtack image */
+            height: 40px; /* Size of the thumbtack image */
+            background-image: url('home_page_images/tack2.webp'); /* Path to your thumbtack image */
+            background-size: cover;
+            position: absolute;
+            top: 10px; /* Adjust so the thumbtack appears to be pinning the top edge of the item */
+            left: 50%;
+            transform: translateX(-50%);
+            transition: opacity 0.3s ease; /* Smooth transition for the thumbtack */
+            z-index: 10; /* Ensure it's above the images */
+        }
+        
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* New media query for screens with a width of 600px or less */
+        @media (max-width: 450px) {
+            .grid-container {
+                grid-template-columns: repeat(1, 1fr);
+            }
+            .header {
+                padding: 30px; /* Adjust header padding for smaller screens */
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+
+    <div class="header">
+        <h1 class="title">ZONK PROJECTS</h1>
+        <p>various projects I made, some wierd, some interesting</p>
+        <p class="p2">hope you enjoy :)</p>
+    </div>
+    
+
+    <div class="grid-container">
+        <div class="grid-item">
+            <a href="/pixelator/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/pixelator.png" alt="pixelator">
+                <img class="hover-gif" src="home_page_images/pixelator.png" alt="pixelator">
+            </a>
+        </div>
+        <div class="grid-item">
+            <a href="/sequencer/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/sequencer.png" alt="Seqeuncer">
+                <img class="hover-gif" src="home_page_videos/sequencer.gif" alt="Seqeuncer Gif">
+            </a>
+        </div>
+       
+        
+        <div class="grid-item">
+            <a href="https://isaacmonheit.github.io/personal-website/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/breathe.png" alt="Breathe.">
+                <img class="hover-gif" src="home_page_videos/infinitybreathe.gif" alt="Breathe. Gif">
+            </a>
+        </div>
+        <div class="grid-item">
+            <a href="/cube/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/cube.png" alt="cube">
+                <img class="hover-gif" src="home_page_images/cube.png" alt="cube">
+            </a>
+        </div>
+        <div class="grid-item">
+            <a href="/onepianokey/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/one_piano_key.png" alt="One Piano Key">
+                <img class="hover-gif" src="home_page_videos/pianokey.gif" alt="One Piano Key Gif">
+            </a>
+        </div>
+        <!-- <div class="grid-item">
+            <div>
+                <a href="https://isaacmonheit-7qlh5.ondigitalocean.app/">
+                    <img src="home_page_images/breathe.png" alt="Breathe.">
+                </a>
+            </div>
+        </div> -->
+        <!-- <div class="grid-item">
+            <div>
+                <a href="/sequencer/">
+                    <img src="home_page_images/sequencer.png" alt="Seqeuncer">
+                </a>
+            </div>
+        </div> -->
+        <div class="grid-item">
+            <a href="/isitraining/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/itisraining.png" alt="isitraining">
+                <img class="hover-gif" src="home_page_images/itisraining.png" alt="isitraining">
+            </a>
+        </div>
+        <div class="grid-item">
+            <a href="/isitwindy/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/isitwindy.png" alt="isitwindy">
+                <img class="hover-gif" src="home_page_images/isitwindy.png" alt="isitwindy">
+            </a>
+        </div>
+        <div class="grid-item">
+            <a href="https://isaacmonheit.github.io/view3d/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/view3d.png" alt="view3d">
+                <img class="hover-gif" src="home_page_images/view3d.png" alt="view3d">
+            </a>
+        </div>
+       
+        <div class="grid-item">
+            <a href="/burst/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/burst.png" alt="burst">
+                <img class="hover-gif" src="home_page_images/burst.png" alt="burst">
+            </a>
+        </div>
+        
+        <div class="grid-item">
+            <a href="/aurora/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/aurora.png" alt="aurora">
+                <img class="hover-gif" src="home_page_images/aurora.png" alt="aurora">
+            </a>
+        </div>
+        <!-- <div class="grid-item">
+            <div>
+                <a href="https://isaacmonheit.github.io/AudioVisualizer/">
+                    <img src="home_page_images/audiovisualizer.png" alt="AudioVisualizer">
+                </a>
+            </div>
+        </div> -->
+        <div class="grid-item">
+            <a href="/hecticness/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/hecticness.png" alt="hecticness">
+                <img class="hover-gif" src="home_page_images/hecticness.png" alt="hecticness">
+            </a>
+        </div>
+       
+        <div class="grid-item">
+            <a href="/age/">
+                <div class="thumbtack"></div>
+                <img class="static-image" src="home_page_images/age.png" alt="isitraining">
+                <img class="hover-gif" src="home_page_images/age.png" alt="isitraining">
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<!-- idea: have each sub website play a gif of the actions of that website when you hover over it -->
+
+
+
+<!-- <li><a href="/onepianokey">One Piano Key</a> - Experience the joy of pressing a single piano key.</li>
+<li><a href="https://isaacmonheit-7qlh5.ondigitalocean.app/">Breathe.</a> - Just Breathe.</li>
+<li><a href="/sequencer">Basic Seqeuncer</a> - minimal function, just make beat (WIP)</li>
+<li><a href="/chromesthesia">Chromesthesia</a> - image -> sound (incomplete)</li>
+<li><a href="https://isaacmonheit.github.io/view3d/">view3d</a> - 3d image</li>
+<li><a href="/hecticness/">Hecticness</a> - idk what's happening</li>
+<li><a href="/wave/">wave</a> - the waveeee (incomplete)</li>
+<li><a href="/grassyfield/">Grassy Field</a> - wind and song and beauty (incomplete)</li>
+<li><a href="https://isaacmonheit.github.io/AudioVisualizer/">Audio Visualizer</a> - live audio analysis (doesn't work on computer chrome for some reason)</li>
+<li><a href="/pixelator/">pixelator</a> - give it any image</li>    
+<li><a href="/subdivider/">Subdivider</a> - to help with subdividing odd time signatures (WIP) </li>   
+<li><a href="/burst/">Burst</a> - burst of color</li>   
+<li><a href="/swirl/">swirl</a> - swirl an image (WIP)</li>   
+<li><a href="/ascii/">ascii</a> - text to ascii art (WIP)</li>   
+<li><a href="/Wildflower_Restoration_Project/">Wildflower Restoration Project</a> - artist website</li>
+<li><a href="/cube/">CUBE</a> - interactive cube</li>   
+<li><a href="/holographic_image/">holographic_image</a> - interactive holographic image</li>   
+<li><a href="/pyramid/">PYRAMID</a> - interactive pyramid</li>   
+<li><a href="/aurora/">aurora</a> - goal is to simulate live time</li>    -->
